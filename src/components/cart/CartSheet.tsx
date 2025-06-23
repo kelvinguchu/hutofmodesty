@@ -43,6 +43,14 @@ export function CartSheet({ children }: CartSheetProps) {
     setOpen(false);
   };
 
+  const getCheckoutUrl = () => {
+    if (!user) {
+      // If user is not authenticated, redirect to login with checkout redirect
+      return `/login?redirect=${encodeURIComponent("/checkout")}`;
+    }
+    return "/checkout";
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -172,26 +180,6 @@ export function CartSheet({ children }: CartSheetProps) {
               </div>
             </div>
 
-            {!user && (
-              <div className='bg-purple-50 rounded-xl border border-purple-100 p-4 mb-4'>
-                <div className='flex items-center gap-3'>
-                  <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0'>
-                    <User className='w-4 h-4 text-white' />
-                  </div>
-                  <div>
-                    <p className='text-sm font-medium text-gray-900 mb-1'>
-                      Sign in for faster checkout
-                    </p>
-                    <Link
-                      href='/login?redirect=/checkout'
-                      className='text-sm text-purple-600 hover:text-purple-700 font-medium cursor-pointer'>
-                      Sign in now →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className='flex items-center gap-3'>
               <button
                 onClick={clearCart}
@@ -200,11 +188,11 @@ export function CartSheet({ children }: CartSheetProps) {
                 Clear Cart
               </button>
               <Link
-                href='/checkout'
+                href={getCheckoutUrl()}
                 onClick={handleCheckout}
                 className='flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wider text-center transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer'>
                 <ShoppingBag className='h-4 w-4' />
-                Checkout
+                {user ? "Checkout" : "Continue"}
               </Link>
             </div>
           </div>

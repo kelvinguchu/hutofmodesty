@@ -94,24 +94,8 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
               <p className='text-gray-500 text-sm mb-6 leading-relaxed'>
                 Items added to your wishlist will appear here.
                 <br />
-                Sign in to save your favorites!
+                Start browsing to find your favorites!
               </p>
-              {!user && (
-                <div className='bg-purple-50 rounded-xl border border-purple-100 p-4 max-w-sm'>
-                  <div className='flex items-center gap-3'>
-                    <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0'>
-                      <User className='w-4 h-4 text-white' />
-                    </div>
-                    <div>
-                      <Link
-                        href='/login'
-                        className='text-sm text-purple-600 hover:text-purple-700 font-medium cursor-pointer'>
-                        Sign in now →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className='p-4'>

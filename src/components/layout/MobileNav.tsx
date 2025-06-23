@@ -66,8 +66,8 @@ export default function MobileNav({ categories }: Readonly<MobileNavProps>) {
               </div>
             </Link>
 
-            {/* Mobile Account Icon - Clean */}
-            <UserButton className='w-6 h-6' />
+            {/* Mobile Account Icon - Clean Mobile Variant */}
+            <UserButton variant='mobile' className='w-8 h-8' />
           </div>
         </div>
 
