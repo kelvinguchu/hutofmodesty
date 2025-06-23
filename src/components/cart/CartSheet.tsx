@@ -68,7 +68,7 @@ export function CartSheet({ children }: CartSheetProps) {
         <div className='flex-1 overflow-y-auto'>
           {items.length === 0 ? (
             <div className='flex flex-col items-center justify-center h-64 text-center p-8'>
-              <div className='w-20 h-20 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 border border-purple-100'>
+              <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6 '>
                 <ShoppingBag className='w-10 h-10 text-gray-400' />
               </div>
               <h3 className='text-xl font-bold text-gray-900 mb-3'>
@@ -204,7 +204,7 @@ export function CartSheet({ children }: CartSheetProps) {
                 onClick={handleCheckout}
                 className='flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wider text-center transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer'>
                 <ShoppingBag className='h-4 w-4' />
-                Proceed to Checkout
+                Checkout
               </Link>
             </div>
           </div>

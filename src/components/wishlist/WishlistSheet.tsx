@@ -85,7 +85,7 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
         <div className='flex-1 overflow-y-auto'>
           {items.length === 0 ? (
             <div className='flex flex-col items-center justify-center h-64 text-center p-8'>
-              <div className='w-20 h-20 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 border border-purple-100'>
+              <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6 '>
                 <Heart className='w-10 h-10 text-gray-400' />
               </div>
               <h3 className='text-xl font-bold text-gray-900 mb-3'>
@@ -94,7 +94,7 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
               <p className='text-gray-500 text-sm mb-6 leading-relaxed'>
                 Items added to your wishlist will appear here.
                 <br />
-                Start browsing to save your favorites!
+                Sign in to save your favorites!
               </p>
               {!user && (
                 <div className='bg-purple-50 rounded-xl border border-purple-100 p-4 max-w-sm'>
@@ -103,9 +103,6 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
                       <User className='w-4 h-4 text-white' />
                     </div>
                     <div>
-                      <p className='text-sm font-medium text-gray-900 mb-1'>
-                        Save across devices
-                      </p>
                       <Link
                         href='/login'
                         className='text-sm text-purple-600 hover:text-purple-700 font-medium cursor-pointer'>

@@ -118,7 +118,7 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
     if (!user) {
       return (
         <div className='flex flex-col items-center justify-center h-64 text-center p-6'>
-          <div className='w-20 h-20 rounded-2xl bg-gray-50 flex items-center justify-center mb-6 border border-gray-100'>
+          <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6'>
             <Package className='w-10 h-10 text-gray-400' />
           </div>
           <h3 className='text-xl font-bold text-gray-900 mb-3'>
@@ -148,7 +148,7 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
     if (error) {
       return (
         <div className='flex flex-col items-center justify-center h-64 text-center p-6'>
-          <div className='w-20 h-20 rounded-2xl bg-red-50 flex items-center justify-center mb-6 border border-red-100'>
+          <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6'>
             <Package className='w-10 h-10 text-red-500' />
           </div>
           <h3 className='text-xl font-bold text-gray-900 mb-3'>
@@ -167,7 +167,7 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
     if (orders.length === 0) {
       return (
         <div className='flex flex-col items-center justify-center h-64 text-center p-6'>
-          <div className='w-20 h-20 rounded-2xl bg-gray-50 flex items-center justify-center mb-6 border border-gray-100'>
+          <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6'>
             <Package className='w-10 h-10 text-gray-400' />
           </div>
           <h3 className='text-xl font-bold text-gray-900 mb-3'>
