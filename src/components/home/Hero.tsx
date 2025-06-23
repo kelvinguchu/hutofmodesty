@@ -10,7 +10,7 @@ const slides = [
   {
     desktopImage: "/hero/hero-thobe.jpg",
     mobileImage: "/qamis/qamis3.webp",
-    title: "REGAL QAMIS",
+    title: "PREMIUM QAMIS",
     subtitle: "Crafted for Nobility",
     description:
       "Discover the epitome of masculine elegance with our handcrafted qamis collection",

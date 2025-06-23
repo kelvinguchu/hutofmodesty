@@ -66,10 +66,8 @@ export default function MobileNav({ categories }: Readonly<MobileNavProps>) {
               </div>
             </Link>
 
-            {/* Mobile Account Icon */}
-            <div className='bg-gray-50 rounded-full p-1 hover:bg-gray-100 transition-colors duration-200'>
-              <UserButton className='w-6 h-6' />
-            </div>
+            {/* Mobile Account Icon - Clean */}
+            <UserButton className='w-6 h-6' />
           </div>
         </div>
 
