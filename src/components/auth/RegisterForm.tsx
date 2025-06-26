@@ -244,17 +244,6 @@ export function RegisterForm({
             )}
           </button>
         </form>
-
-        <div className='mt-6 text-center'>
-          <p className='text-sm text-gray-600'>
-            Already have an account?{" "}
-            <a
-              href='/login'
-              className='text-purple-600 hover:text-purple-700 font-semibold cursor-pointer'>
-              Sign in here
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

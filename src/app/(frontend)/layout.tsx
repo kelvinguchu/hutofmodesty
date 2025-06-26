@@ -35,10 +35,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/favicon.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/favicon.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/icons/icon-192x192.png" }],
+    apple: [{ url: "/icons/favicon.png" }],
   },
 };
 
@@ -110,8 +110,8 @@ export default async function RootLayout({
         <meta name='mobile-web-app-capable' content='yes' />
         <meta name='msapplication-TileColor' content='#FFFFFF' />
         <meta name='theme-color' content='#FFFFFF' />
-        <link rel='icon' href='/icons/logo.svg' />
-        <link rel='apple-touch-icon' href='/icons/icon-192x192.png' />
+        <link rel='icon' href='/icons/favicon.png' />
+        <link rel='apple-touch-icon' href='/icons/icon512_maskable.png' />
         <link rel='apple-touch-startup-image' href='/icons/splash.png' />
       </head>
       <body className='font-body bg-[#f9f6f2]'>

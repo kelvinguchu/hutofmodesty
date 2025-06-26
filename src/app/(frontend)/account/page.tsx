@@ -15,7 +15,13 @@ export default async function AccountPage() {
   const payload = await getPayload({ config });
 
   try {
-    const { user } = await payload.auth({ headers });
+    // Convert Next.js headers to the format Payload expects (same as other routes)
+    const convertedHeaders = new Headers();
+    headers.forEach((value, key) => {
+      convertedHeaders.set(key, value);
+    });
+
+    const { user } = await payload.auth({ headers: convertedHeaders });
 
     if (!user) {
       redirect(
@@ -30,11 +36,19 @@ export default async function AccountPage() {
       depth: 2, // Include related media data
     });
 
-    return ( 
-      <div > 
-    <AccountDashboard user={userWithPhoto} />
-    </div> );
+    return (
+      <div>
+        <AccountDashboard user={userWithPhoto} />
+      </div>
+    );
   } catch (error) {
+    // Check if it's a redirect error (which is expected behavior)
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      // Re-throw redirect errors so they work properly
+      throw error;
+    }
+
+    // Only log actual authentication errors
     console.error("Auth error:", error);
     redirect("/login?error=Authentication failed&redirect=/account");
   }

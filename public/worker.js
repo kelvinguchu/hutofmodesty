@@ -57,11 +57,8 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         '/',
         '/offline.html',
-        '/icons/logo.svg',
-        '/icons/icon-192x192.png',
-        '/icons/icon-384x384.png',
-        '/icons/icon-512x512.png',
-        '/icons/splash.png',
+        '/icons/logo.png',
+        '/icons/icon512_maskable.png',
         '/manifest.json',
       ])
     }),

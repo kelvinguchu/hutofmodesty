@@ -22,7 +22,7 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_c510a05dfebd59fe021e1abba8d6e4ea } from '../../../components/admin/Icon.tsx'
-import { default as default_d794b9219551a60da35d7aaae3902417 } from '../../../components/admin/Logo.tsx'
+import { default as default_bf9ab5878efc08656b5a6a64801891e1 } from '../../../components/admin/LogoDark.tsx'
 import { UploadthingClientUploadHandler as UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10 } from '@payloadcms/storage-uploadthing/client'
 
 export const importMap = {
@@ -50,6 +50,6 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "./components/admin/Icon.tsx#default": default_c510a05dfebd59fe021e1abba8d6e4ea,
-  "./components/admin/Logo.tsx#default": default_d794b9219551a60da35d7aaae3902417,
+  "./components/admin/LogoDark.tsx#default": default_bf9ab5878efc08656b5a6a64801891e1,
   "@payloadcms/storage-uploadthing/client#UploadthingClientUploadHandler": UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10
 }

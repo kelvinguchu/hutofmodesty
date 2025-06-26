@@ -237,8 +237,8 @@ export default async function HomePage() {
       <section className='py-16 sm:py-18 md:py-20 bg-black text-white text-center'>
         <div className='container mx-auto px-4 sm:px-6 max-w-4xl'>
           <h2 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-4 sm:mb-6 leading-tight px-2'>
-            Redefining <span className='text-purple-400'>Modern</span> Modest
-            Wear
+            Crafting <span className='text-purple-400'>elegance</span> with a
+            touch of modesty
           </h2>
           <p className='text-base sm:text-lg md:text-xl text-gray-400 leading-relaxed px-4 sm:px-0'>
             Where contemporary design meets traditional values. Every piece is

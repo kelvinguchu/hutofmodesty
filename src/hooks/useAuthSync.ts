@@ -16,12 +16,14 @@ export function useAuthSync() {
 
     const syncUserData = async () => {
       try {
-        // Sync local data to server first
-        const syncPromises = [];
+        // Add a small delay to ensure authentication cookie has propagated
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // ---- Sync cart then wishlist SEQUENTIALLY to avoid write conflicts ----
 
         if (cartItems.length > 0) {
-          syncPromises.push(
-            Promise.race([
+          try {
+            await Promise.race([
               fetch("/api/users/sync-cart", {
                 method: "POST",
                 headers: {
@@ -31,18 +33,17 @@ export function useAuthSync() {
                 body: JSON.stringify({ cartItems }),
               }),
               new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Cart sync timeout")), 10000)
+                setTimeout(() => reject(new Error("Cart sync timeout")), 100000)
               ),
-            ]).catch((error) => {
-              console.error("Cart sync failed:", error);
-              return null; // Continue with other operations
-            })
-          );
+            ]);
+          } catch (error) {
+            // Cart sync failed silently
+          }
         }
 
         if (wishlistItems.length > 0) {
-          syncPromises.push(
-            Promise.race([
+          try {
+            await Promise.race([
               fetch("/api/users/sync-wishlist", {
                 method: "POST",
                 headers: {
@@ -54,18 +55,14 @@ export function useAuthSync() {
               new Promise((_, reject) =>
                 setTimeout(
                   () => reject(new Error("Wishlist sync timeout")),
-                  10000
+                  100000
                 )
               ),
-            ]).catch((error) => {
-              console.error("Wishlist sync failed:", error);
-              return null; // Continue with other operations
-            })
-          );
+            ]);
+          } catch (error) {
+            // Wishlist sync failed silently
+          }
         }
-
-        // Wait for sync operations to complete
-        await Promise.all(syncPromises);
 
         // Fetch updated user data using Payload's built-in endpoint
         const userDataResponse = await fetch("/api/users/me", {
@@ -92,7 +89,7 @@ export function useAuthSync() {
                   addCartItem(item as any); // Type assertion after validation
                 }
               } catch (error) {
-                console.error("Failed to add cart item:", error, item);
+                // Failed to add cart item silently
               }
             });
           }
@@ -109,13 +106,13 @@ export function useAuthSync() {
                   addWishlistItem(item as any); // Type assertion after validation
                 }
               } catch (error) {
-                console.error("Failed to add wishlist item:", error, item);
+                // Failed to add wishlist item silently
               }
             });
           }
         }
       } catch (error) {
-        console.error("Failed to sync user data:", error);
+        // Failed to sync user data silently
       } finally {
         // Mark as synced to prevent repeated calls
         hasSyncedRef.current = true;

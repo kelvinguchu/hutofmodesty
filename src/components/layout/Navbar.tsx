@@ -18,6 +18,7 @@ import { CartSheet } from "@/components/cart/CartSheet";
 import { UserButton } from "@/components/auth/UserButton";
 import MobileNav from "./MobileNav";
 import type { CategoryUI } from "@/types/navigation";
+import Logo from "@/components/admin/Logo";
 
 interface NavbarProps {
   categories: CategoryUI[];
@@ -110,14 +111,7 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
           <div className='flex items-center justify-between px-4 py-3'>
             {/* Logo */}
             <Link href='/' className='relative z-10 group cursor-pointer'>
-              <div className='flex items-center'>
-                <span className='text-2xl font-black text-gray-900 tracking-tight group-hover:text-purple-600 transition-colors duration-200'>
-                  Hut of Modesty
-                </span>
-                <div className='ml-3 h-5 w-5 flex items-center justify-center'>
-                  <div className='h-2.5 w-2.5 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full animate-pulse shadow-sm'></div>
-                </div>
-              </div>
+              <Logo />
             </Link>
 
             {/* Desktop Navigation */}

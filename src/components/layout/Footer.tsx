@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FaFacebook, FaInstagram, FaTwitter, FaEnvelope } from "react-icons/fa";
 import { MapPin, Phone, Mail } from "lucide-react";
+import LogoDark from "@/components/admin/LogoDark";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,16 +13,10 @@ export default function Footer() {
           {/* Logo and About */}
           <div className='space-y-6'>
             <Link href='/' className='inline-flex items-center group'>
-              <span className='text-2xl font-black text-white group-hover:text-purple-400 transition-colors duration-200'>
-                Hut of Modesty
-              </span>
-              <div className='ml-3 h-5 w-5 flex items-center justify-center'>
-                <div className='h-2.5 w-2.5 bg-purple-500 rounded-full animate-pulse shadow-sm'></div>
-              </div>
+              <LogoDark />
             </Link>
             <p className='text-gray-300 leading-relaxed text-sm'>
-              Premium clothing store featuring Qamis and Abaya collections.
-              Where contemporary design meets traditional values.
+              Crafting elegance with a touch of modesty.
             </p>
             <div className='flex space-x-4 pt-4'>
               <a

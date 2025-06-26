@@ -5,7 +5,61 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: "email",
   },
-  auth: true,
+  auth: {
+    // Configure cookies for proper session handling
+    cookies: {
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+    // Set reasonable token expiration (24 hours)
+    tokenExpiration: 86400, // 24 hours in seconds
+  },
+  access: {
+    // Allow public registration
+    create: () => true,
+    // Require authentication for reading users
+    read: ({ req: { user } }) => {
+      // If user is logged in, they can read their own profile
+      if (user) {
+        // Admins can read all users
+        if (user.role === "admin") {
+          return true;
+        }
+        // Regular users can only read their own profile
+        return {
+          id: {
+            equals: user.id,
+          },
+        };
+      }
+      // No access for unauthenticated users
+      return false;
+    },
+    // Users can update their own profile, admins can update any
+    update: ({ req: { user } }) => {
+      if (user) {
+        // Admins can update any user
+        if (user.role === "admin") {
+          return true;
+        }
+        // Regular users can only update their own profile
+        return {
+          id: {
+            equals: user.id,
+          },
+        };
+      }
+      return false;
+    },
+    // Only admins can delete users
+    delete: ({ req: { user } }) => {
+      return user?.role === "admin";
+    },
+    // Allow only users with role === 'admin' into the Payload admin panel
+    admin: ({ req: { user } }) => {
+      return user?.role === "admin";
+    },
+  },
   fields: [
     // Email added by default
     {
@@ -112,6 +166,12 @@ export const Users: CollectionConfig = {
           value: "admin",
         },
       ],
+      access: {
+        // Only admins can update user roles
+        update: ({ req: { user } }) => {
+          return user?.role === "admin";
+        },
+      },
       admin: {
         description: "User role for access control",
       },

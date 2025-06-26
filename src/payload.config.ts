@@ -29,17 +29,23 @@ export default buildConfig({
         {
           rel: "icon",
           type: "image/png",
-          url: "/icons/logo.svg",
+          url: "/icons/favicon.png",
         },
       ],
     },
     components: {
       graphics: {
-        Logo: "./components/admin/Logo.tsx",
+        Logo: "./components/admin/LogoDark.tsx",
         Icon: "./components/admin/Icon.tsx",
       },
     },
   },
+  // Add CSRF protection and server URL for proper cookie handling
+  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
+  csrf: [
+    // Allow requests from the same origin
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
+  ],
   collections: [Users, Media, Categories, SubCategories, Products, Orders],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? "",

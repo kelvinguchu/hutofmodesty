@@ -117,7 +117,17 @@ export function AuthProvider({
       throw new Error(data.message ?? "Registration failed");
     }
 
-    setUser(data.user);
+    // User created successfully, now log them in automatically
+    // Payload creates the user but doesn't automatically log them in
+    try {
+      await login(registerData.email, registerData.password);
+    } catch (loginError) {
+      // If auto-login fails, still consider registration successful
+      console.error("Auto-login after registration failed:", loginError);
+      throw new Error(
+        "Registration successful, but auto-login failed. Please log in manually."
+      );
+    }
   };
 
   const logout = async () => {
