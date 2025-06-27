@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { ZoomIn, ImageIcon } from "lucide-react";
+import { normalizeMediaURL } from "@/lib/utils";
 
 interface ProductImage {
   url: string;
@@ -24,7 +25,7 @@ interface ProductGalleryProps {
   mainImage: ProductImage | null;
   additionalImages?: ProductImage[];
   productName: string;
-  colorVariations?: ColorVariation[];
+  colorVariations?: ColorVariation[]; // Only available for clothing
   selectedColorCode?: string;
 }
 
@@ -37,7 +38,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
 }) => {
   // State to track the main displayed image
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(
-    mainImage?.url || null
+    mainImage?.url ? (normalizeMediaURL(mainImage.url) ?? mainImage.url) : null
   );
   const [isZoomed, setIsZoomed] = useState(false);
 
@@ -52,7 +53,9 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
     if (selectedVariation) {
       const variationImages = [
         {
-          url: selectedVariation.image.url,
+          url:
+            normalizeMediaURL(selectedVariation.image.url) ??
+            selectedVariation.image.url,
           alt: `${productName} - ${selectedVariation.color}`,
         },
       ];
@@ -64,7 +67,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       ) {
         selectedVariation.additionalImages.forEach((img, index) => {
           variationImages.push({
-            url: img.image.url,
+            url: normalizeMediaURL(img.image.url) ?? img.image.url,
             alt: `${productName} - ${selectedVariation.color} view ${index + 1}`,
           });
         });
@@ -76,13 +79,20 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
     // Otherwise use the default main image and additionalImages
     const images: ProductImage[] = [];
     if (mainImage) {
-      images.push(mainImage);
+      images.push({
+        ...mainImage,
+        url: normalizeMediaURL(mainImage.url) ?? mainImage.url,
+      });
     }
 
     // Add unique additional images
     additionalImages.forEach((img) => {
-      if (!images.some((existing) => existing.url === img.url)) {
-        images.push(img);
+      if (
+        !images.some(
+          (existing) => existing.url === (normalizeMediaURL(img.url) ?? img.url)
+        )
+      ) {
+        images.push({ ...img, url: normalizeMediaURL(img.url) ?? img.url });
       }
     });
 
@@ -92,9 +102,13 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   // Reset active image when color changes
   React.useEffect(() => {
     if (selectedVariation && selectedVariation.image) {
-      setActiveImageUrl(selectedVariation.image.url);
+      setActiveImageUrl(
+        normalizeMediaURL(selectedVariation.image.url) ??
+          selectedVariation.image.url ??
+          null
+      );
     } else if (mainImage) {
-      setActiveImageUrl(mainImage.url);
+      setActiveImageUrl(normalizeMediaURL(mainImage.url) ?? mainImage.url);
     }
   }, [selectedVariation, mainImage]);
 
@@ -160,7 +174,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       {displayImages.length > 1 && (
         <div className='space-y-3'>
           <h4 className='text-sm font-semibold text-gray-700 flex items-center gap-2'>
-            <div className='w-2 h-2 bg-purple-500 rounded-full'></div>
+            <div className='w-2 h-2 bg-primary rounded-full'></div>
             More Views
           </h4>
           <div className='grid grid-cols-4 sm:grid-cols-5 gap-3'>
@@ -169,8 +183,8 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
                 key={index}
                 className={`relative aspect-square overflow-hidden border-2 rounded-lg cursor-pointer transition-all duration-200 ${
                   image.url === currentMainImage
-                    ? "border-purple-500 ring-2 ring-purple-200 shadow-lg scale-105"
-                    : "border-gray-300 hover:border-purple-400 hover:shadow-md hover:scale-102"
+                    ? "border-primary ring-2 ring-primary/20 shadow-lg scale-105"
+                    : "border-gray-300 hover:border-primary/60 hover:shadow-md hover:scale-102"
                 } bg-gradient-to-br from-gray-50 to-gray-100`}
                 onClick={() => handleThumbnailClick(image.url)}>
                 <Image
@@ -182,7 +196,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
                 />
                 {/* Active indicator */}
                 {image.url === currentMainImage && (
-                  <div className='absolute inset-0 bg-purple-500/10 border-2 border-purple-500 rounded-lg'></div>
+                  <div className='absolute inset-0 bg-primary/10 border-2 border-primary rounded-lg'></div>
                 )}
               </div>
             ))}

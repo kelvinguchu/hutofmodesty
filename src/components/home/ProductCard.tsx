@@ -3,25 +3,21 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaHeart, FaRegHeart, FaShoppingBag } from "react-icons/fa";
-import { Check, ShoppingCart } from "lucide-react";
-import { useCart } from "@/lib/cart/CartContext";
+import { Heart, Check, ShoppingCart, ShoppingBag } from "lucide-react";
+import { useCartStore } from "@/lib/cart/cartStore";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
 import { CartSheet } from "@/components/cart/CartSheet";
+import { normalizeMediaURL } from "@/lib/utils";
+
+// Import the types we need
+import type { Clothing, Footwear, Fragrance, Accessory } from "@/payload-types";
+
+// Union type for all product types
+type Product = Clothing | Footwear | Fragrance | Accessory;
 
 interface ProductCardProps {
-  product: {
-    id: string;
-    slug?: string;
-    name: string;
-    price: number;
-    mainImage?:
-      | string
-      | {
-          url?: string | null;
-        }
-      | null;
-    staticImage?: string;
+  product: Product & {
+    staticImage?: string; // For fallback images
   };
   imageWidth?: number;
   imageHeight?: number;
@@ -34,7 +30,7 @@ export default function ProductCard({
   imageHeight = 500,
   accent = "default",
 }: Readonly<ProductCardProps>) {
-  const { addItem, items } = useCart();
+  const { addItem, isInCart } = useCartStore();
   const {
     addItem: addToWishlist,
     removeItem: removeFromWishlist,
@@ -42,7 +38,7 @@ export default function ProductCard({
   } = useWishlistStore();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
-  const [isInCart, setIsInCart] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Handle image source (either from CMS or static folder)
   let imageSource: string | undefined;
@@ -54,7 +50,7 @@ export default function ProductCard({
     "url" in product.mainImage &&
     product.mainImage.url
   ) {
-    imageSource = product.mainImage.url;
+    imageSource = normalizeMediaURL(product.mainImage.url);
   }
 
   // Fallback to staticImage if imageSource is still undefined
@@ -65,11 +61,20 @@ export default function ProductCard({
   // Provide a default placeholder if no image source is found after checks
   const finalImageSource = imageSource || "/placeholder-product.jpg";
 
-  // Check if the product is in wishlist and cart when component mounts or cart/wishlist changes
+  // Set hydrated state after mount to prevent hydration mismatch
   useEffect(() => {
-    setIsWishlisted(isInWishlist(product.id));
-    setIsInCart(items.some((item) => item.id === product.id));
-  }, [isInWishlist, product.id, items]);
+    setIsHydrated(true);
+  }, []);
+
+  // Check if the product is in wishlist when component mounts or wishlist changes
+  useEffect(() => {
+    if (isHydrated) {
+      setIsWishlisted(isInWishlist(product.id));
+    }
+  }, [isHydrated, isInWishlist, product.id]);
+
+  // Check if product is in cart - only after hydration to prevent mismatch
+  const productIsInCart = isHydrated ? isInCart(product.id) : false;
 
   // Handle wishlist toggle
   const handleWishlistToggle = (
@@ -95,7 +100,7 @@ export default function ProductCard({
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     e.preventDefault();
-    if (!isInCart) {
+    if (!productIsInCart) {
       addItem({
         id: product.id,
         name: product.name,
@@ -110,7 +115,6 @@ export default function ProductCard({
       // Reset after 2 seconds
       setTimeout(() => {
         setIsAddedToCart(false);
-        setIsInCart(true);
       }, 2000);
     }
   };
@@ -119,15 +123,15 @@ export default function ProductCard({
     switch (accent) {
       case "emerald":
         return {
-          primary: "emerald-500",
-          hover: "emerald-600",
-          light: "emerald-100",
+          primary: "primary",
+          hover: "primary/90",
+          light: "primary/10",
         };
       case "purple":
         return {
-          primary: "purple-500",
-          hover: "purple-600",
-          light: "purple-100",
+          primary: "primary",
+          hover: "primary/90",
+          light: "primary/10",
         };
       default:
         return {
@@ -164,13 +168,13 @@ export default function ProductCard({
         onClick={handleWishlistToggle}
         className='absolute right-2 sm:right-2.5 top-2 sm:top-2.5 flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center bg-white/95 backdrop-blur-sm hover:bg-white active:bg-white transition-all duration-300 rounded-full shadow-sm border border-gray-100/50 hover:border-gray-200 active:border-gray-300 cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2'
         aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}>
-        {isWishlisted ? (
-          <FaHeart
-            className={`text-${colors.primary} w-4 h-4 sm:w-3.5 sm:h-3.5`}
-          />
-        ) : (
-          <FaRegHeart className='text-gray-500 group-hover:text-gray-700 w-4 h-4 sm:w-3.5 sm:h-3.5 transition-colors duration-200' />
-        )}
+        <Heart
+          className={`w-4 h-4 sm:w-3.5 sm:h-3.5 transition-colors duration-200 ${
+            isWishlisted
+              ? `text-${colors.primary} fill-current`
+              : "text-gray-500 group-hover:text-gray-700"
+          }`}
+        />
       </button>
 
       {/* Product Info - responsive padding */}
@@ -194,7 +198,7 @@ export default function ProductCard({
 
         {/* Add to Cart Button - improved mobile accessibility */}
         <div>
-          {isInCart ? (
+          {productIsInCart ? (
             <CartSheet>
               <button
                 className={`w-full flex items-center justify-center gap-2 bg-${colors.primary} hover:bg-${colors.hover} active:bg-${colors.hover} text-white px-3 py-3 sm:py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-${colors.primary} focus:ring-offset-2 cursor-pointer touch-manipulation rounded-md`}>
@@ -218,7 +222,7 @@ export default function ProductCard({
                 </>
               ) : (
                 <>
-                  <FaShoppingBag className='h-4 w-4 sm:h-3.5 sm:w-3.5' />
+                  <ShoppingBag className='h-4 w-4 sm:h-3.5 sm:w-3.5' />
                   <span>Add to Cart</span>
                 </>
               )}

@@ -1,14 +1,14 @@
 import type { CollectionConfig } from "payload";
 
-export const Products: CollectionConfig = {
-  slug: "products",
+export const Clothing: CollectionConfig = {
+  slug: "clothing",
   admin: {
     useAsTitle: "name",
-    defaultColumns: ["name", "category", "price", "status"],
-    listSearchableFields: ["name", "description", "sku"],
+    defaultColumns: ["name", "category", "subcategory", "price", "status"],
+    listSearchableFields: ["name", "description"],
   },
   access: {
-    read: () => true, // Everyone can read products
+    read: () => true, // Everyone can read clothing products
   },
   fields: [
     {
@@ -33,6 +33,22 @@ export const Products: CollectionConfig = {
       relationTo: "categories",
       required: true,
       hasMany: false,
+      admin: {
+        description:
+          "Auto-filled with 'Clothing' category (can be changed if needed)",
+      },
+      defaultValue: async ({ req }) => {
+        try {
+          const clothingCategory = await req.payload.find({
+            collection: "categories",
+            where: { slug: { equals: "clothing" } },
+            limit: 1,
+          });
+          return clothingCategory.docs[0]?.id || null;
+        } catch {
+          return null;
+        }
+      },
     },
     {
       name: "subcategory",
@@ -42,10 +58,8 @@ export const Products: CollectionConfig = {
       hasMany: false,
       admin: {
         condition: (data) => Boolean(data?.category),
-        description:
-          "Select a subcategory that belongs to the selected main category",
+        description: "Select clothing subcategory (Abayas, Dresses, Dirac)",
       },
-      // Filter subcategories based on the selected category
       filterOptions: ({ data }) => {
         if (!data?.category) return false;
         return {
@@ -65,22 +79,10 @@ export const Products: CollectionConfig = {
       ],
     },
     {
-      name: "featured",
-      type: "checkbox",
-      label: "Featured Product",
-      defaultValue: false,
-    },
-    {
       name: "trending",
       type: "checkbox",
       label: "Trending Product",
       defaultValue: false,
-    },
-    {
-      name: "sku",
-      type: "text",
-      required: false,
-      unique: true,
     },
     {
       name: "mainImage",
@@ -104,7 +106,7 @@ export const Products: CollectionConfig = {
         description: "Hex code or color name for the main color",
       },
     },
-    // Product Color Variations - Additional color options
+    // Product Color Variations
     {
       name: "colorVariations",
       type: "array",
@@ -117,7 +119,7 @@ export const Products: CollectionConfig = {
         },
         {
           name: "colorCode",
-          type: "text", // Hex code or color name
+          type: "text",
           required: false,
         },
         {
@@ -167,7 +169,7 @@ export const Products: CollectionConfig = {
         },
       ],
     },
-    // Height Ranges
+    // Height Ranges (specific to clothing)
     {
       name: "heightRanges",
       type: "array",
@@ -193,6 +195,23 @@ export const Products: CollectionConfig = {
           },
         },
       ],
+    },
+    // Fabric & Material (clothing-specific)
+    {
+      name: "fabric",
+      type: "text",
+      label: "Fabric/Material",
+      admin: {
+        description: "e.g., Cotton, Silk, Polyester blend",
+      },
+    },
+    {
+      name: "careInstructions",
+      type: "textarea",
+      label: "Care Instructions",
+      admin: {
+        description: "How to care for this garment",
+      },
     },
   ],
 };

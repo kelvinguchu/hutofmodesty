@@ -25,13 +25,13 @@ export default function FAQ({ faqs, accent = "default" }: FAQProps) {
     switch (accent) {
       case "emerald":
         return {
-          primary: "emerald-500",
-          hover: "emerald-600",
+          primary: "primary",
+          hover: "primary/90",
         };
       case "purple":
         return {
-          primary: "purple-500",
-          hover: "purple-600",
+          primary: "primary",
+          hover: "primary/90",
         };
       default:
         return {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Phone, MapPin, CreditCard, Loader2 } from "lucide-react";
-import { useCart } from "@/lib/cart/CartContext";
+import { useCartStore } from "@/lib/cart/cartStore";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
 
@@ -27,11 +27,8 @@ export interface CheckoutFormData {
 
 export function CheckoutForm() {
   const router = useRouter();
-  const { items, total, clearCart } = useCart();
-  const {
-    exchangeRate,
-    isLoading: isExchangeLoading,
-  } = useExchangeRate();
+  const { items, total, clearCart } = useCartStore();
+  const { exchangeRate, isLoading: isExchangeLoading } = useExchangeRate();
   const paymentButtonRef = useRef<HTMLDivElement>(null);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -264,8 +261,8 @@ export function CheckoutForm() {
       {/* Customer Information Section */}
       <div className='bg-white rounded-xl shadow-lg border border-gray-100 p-6'>
         <div className='flex items-center gap-3 mb-6'>
-          <div className='w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center'>
-            <User className='w-5 h-5 text-purple-600' />
+          <div className='w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center'>
+            <User className='w-5 h-5 text-primary' />
           </div>
           <h2 className='text-xl font-bold text-gray-900'>
             Customer Information
@@ -286,7 +283,7 @@ export function CheckoutForm() {
                 name='firstName'
                 value={formData.firstName}
                 onChange={handleChange}
-                className='w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your first name'
                 required
               />
@@ -306,7 +303,7 @@ export function CheckoutForm() {
                 name='lastName'
                 value={formData.lastName}
                 onChange={handleChange}
-                className='w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your last name'
                 required
               />
@@ -329,7 +326,7 @@ export function CheckoutForm() {
                 name='email'
                 value={formData.email}
                 onChange={handleChange}
-                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your email'
                 required
               />
@@ -352,7 +349,7 @@ export function CheckoutForm() {
                 name='phone'
                 value={formData.phone}
                 onChange={handleChange}
-                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your phone number'
                 required
               />
@@ -383,7 +380,7 @@ export function CheckoutForm() {
               name='address'
               value={formData.address}
               onChange={handleChange}
-              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
               placeholder='Enter your street address'
               required
             />
@@ -402,7 +399,7 @@ export function CheckoutForm() {
                 name='city'
                 value={formData.city}
                 onChange={handleChange}
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your city'
                 required
               />
@@ -420,7 +417,7 @@ export function CheckoutForm() {
                 name='postalCode'
                 value={formData.postalCode}
                 onChange={handleChange}
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter postal code'
                 required
               />
@@ -437,7 +434,7 @@ export function CheckoutForm() {
                 name='country'
                 value={formData.country}
                 onChange={handleChange}
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 required>
                 <option value='Kenya'>Kenya</option>
                 <option value='Uganda'>Uganda</option>
@@ -489,7 +486,7 @@ export function CheckoutForm() {
 
         {isProcessing ? (
           <div className='text-center py-8'>
-            <Loader2 className='w-8 h-8 animate-spin text-purple-600 mx-auto mb-4' />
+            <Loader2 className='w-8 h-8 animate-spin text-primary mx-auto mb-4' />
             <p className='text-lg font-medium text-gray-900'>
               Processing your payment...
             </p>
@@ -502,7 +499,7 @@ export function CheckoutForm() {
             <div ref={paymentButtonRef} className='w-full'>
               {!isScriptLoaded && (
                 <div className='text-center py-8'>
-                  <Loader2 className='w-8 h-8 animate-spin text-purple-600 mx-auto mb-4' />
+                  <Loader2 className='w-8 h-8 animate-spin text-primary mx-auto mb-4' />
                   <p className='text-lg font-medium text-gray-900'>
                     Loading payment options...
                   </p>

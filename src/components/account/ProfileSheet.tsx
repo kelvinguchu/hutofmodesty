@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { User, Save, Loader2, Camera, X } from "lucide-react";
-import { useAuth } from "@/lib/auth/AuthContext";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Sheet,
@@ -11,13 +11,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { AuthUser } from "@/lib/auth/types";
 
 interface ProfileSheetProps {
   children: React.ReactNode;
+  user: AuthUser;
 }
 
-export function ProfileSheet({ children }: Readonly<ProfileSheetProps>) {
-  const { user, refreshUser } = useAuth();
+export function ProfileSheet({ children, user }: Readonly<ProfileSheetProps>) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -111,8 +113,9 @@ export function ProfileSheet({ children }: Readonly<ProfileSheetProps>) {
       setSuccess(true);
       // Clear selected file after successful upload
       removeSelectedFile();
-      // Refresh user data in context
-      await refreshUser();
+
+      // Refresh the page data to reflect changes
+      router.refresh();
 
       // Auto-hide success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
@@ -157,8 +160,8 @@ export function ProfileSheet({ children }: Readonly<ProfileSheetProps>) {
         className='sm:min-w-[40vw] min-w-[95vw] bg-white p-0 overflow-y-auto border-l border-gray-200 shadow-2xl'>
         <SheetHeader className='border-b border-gray-100 py-4 px-6'>
           <SheetTitle className='text-xl font-bold text-gray-900 flex items-center gap-3'>
-            <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center'>
-              <User className='w-4 h-4 text-white' />
+            <div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
+              <User className='w-4 h-4 text-primary-foreground' />
             </div>
             Edit Profile
           </SheetTitle>
@@ -201,172 +204,146 @@ export function ProfileSheet({ children }: Readonly<ProfileSheetProps>) {
               )}
 
               {/* Profile Photo Section */}
-              <div className='text-center'>
-                <label className='block text-lg font-bold text-gray-900 mb-6'>
+              <div className='bg-gray-50 rounded-xl p-6'>
+                <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+                  <Camera className='w-5 h-5' />
                   Profile Photo
-                </label>
+                </h3>
 
-                <div className='flex flex-col items-center gap-6'>
-                  {/* Avatar Display */}
+                <div className='flex items-center gap-6'>
                   <div className='relative'>
-                    <Avatar className='w-24 h-24'>
-                      {previewUrl ? (
-                        <AvatarImage src={previewUrl} alt='Preview' />
-                      ) : currentProfilePhotoUrl ? (
-                        <AvatarImage
-                          src={currentProfilePhotoUrl}
-                          alt={`${user.firstName} ${user.lastName}`}
-                        />
-                      ) : null}
-                      <AvatarFallback className='bg-purple-600 text-white text-xl font-bold'>
-                        {initials || <User className='w-8 h-8' />}
+                    <Avatar className='w-20 h-20 ring-4 ring-white shadow-lg'>
+                      <AvatarImage
+                        src={previewUrl || currentProfilePhotoUrl || undefined}
+                        alt='Profile photo'
+                      />
+                      <AvatarFallback className='bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold'>
+                        {initials}
                       </AvatarFallback>
                     </Avatar>
-
-                    {/* Remove button for selected file */}
                     {previewUrl && (
                       <button
                         type='button'
                         onClick={removeSelectedFile}
-                        className='absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer'>
+                        className='absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md cursor-pointer'>
                         <X className='w-3 h-3' />
                       </button>
                     )}
                   </div>
 
-                  {/* File Input */}
-                  <div className='flex flex-col items-center gap-3'>
+                  <div className='flex-1'>
                     <input
                       ref={fileInputRef}
                       type='file'
                       accept='image/*'
                       onChange={handleFileSelect}
                       className='hidden'
-                      id='profilePhoto'
                     />
-                    <label
-                      htmlFor='profilePhoto'
-                      className='cursor-pointer inline-flex items-center gap-2 px-4 py-2 border-2 border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 font-medium'>
-                      <Camera className='w-4 h-4' />
-                      {currentProfilePhotoUrl || previewUrl
-                        ? "Change Photo"
-                        : "Upload Photo"}
-                    </label>
-                    <p className='text-sm text-gray-500'>
+                    <button
+                      type='button'
+                      onClick={() => fileInputRef.current?.click()}
+                      className='bg-white border-2 border-dashed border-gray-300 hover:border-primary text-gray-600 hover:text-primary px-4 py-3 rounded-lg transition-all duration-200 font-medium cursor-pointer'>
+                      {selectedFile ? "Change Photo" : "Upload Photo"}
+                    </button>
+                    <p className='text-sm text-gray-500 mt-2'>
                       JPG, PNG or GIF. Max size 5MB.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* First Name */}
-              <div>
-                <label
-                  htmlFor='firstName'
-                  className='block text-sm font-bold text-gray-900 mb-2'>
-                  First Name
-                </label>
-                <input
-                  type='text'
-                  id='firstName'
-                  name='firstName'
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                  className='w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 transition-all duration-200'
-                  placeholder='Enter your first name'
-                />
+              {/* Personal Information */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='firstName'
+                    className='text-sm font-medium text-gray-900'>
+                    First Name *
+                  </label>
+                  <input
+                    id='firstName'
+                    name='firstName'
+                    type='text'
+                    required
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-white'
+                    placeholder='Enter your first name'
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label
+                    htmlFor='lastName'
+                    className='text-sm font-medium text-gray-900'>
+                    Last Name *
+                  </label>
+                  <input
+                    id='lastName'
+                    name='lastName'
+                    type='text'
+                    required
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-white'
+                    placeholder='Enter your last name'
+                  />
+                </div>
               </div>
 
-              {/* Last Name */}
-              <div>
-                <label
-                  htmlFor='lastName'
-                  className='block text-sm font-bold text-gray-900 mb-2'>
-                  Last Name
-                </label>
-                <input
-                  type='text'
-                  id='lastName'
-                  name='lastName'
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                  className='w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 transition-all duration-200'
-                  placeholder='Enter your last name'
-                />
-              </div>
-
-              {/* Email */}
-              <div>
+              <div className='space-y-2'>
                 <label
                   htmlFor='email'
-                  className='block text-sm font-bold text-gray-900 mb-2'>
-                  Email Address
+                  className='text-sm font-medium text-gray-900'>
+                  Email Address *
                 </label>
                 <input
-                  type='email'
                   id='email'
                   name='email'
+                  type='email'
+                  required
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
-                  className='w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 transition-all duration-200'
+                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-white'
                   placeholder='Enter your email address'
                 />
               </div>
 
-              {/* Phone */}
-              <div>
+              <div className='space-y-2'>
                 <label
                   htmlFor='phone'
-                  className='block text-sm font-bold text-gray-900 mb-2'>
+                  className='text-sm font-medium text-gray-900'>
                   Phone Number
                 </label>
                 <input
-                  type='tel'
                   id='phone'
                   name='phone'
+                  type='tel'
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className='w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 transition-all duration-200'
+                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-white'
                   placeholder='Enter your phone number'
                 />
               </div>
 
               {/* Submit Button */}
-              <div className='pt-4'>
+              <div className='pt-6'>
                 <button
                   type='submit'
                   disabled={isLoading}
-                  className='w-full bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer'>
+                  className='w-full bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-semibold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl disabled:cursor-not-allowed cursor-pointer'>
                   {isLoading ? (
                     <>
-                      <Loader2 className='w-4 h-4 animate-spin' />
-                      Updating...
+                      <Loader2 className='w-5 h-5 animate-spin' />
+                      Updating Profile...
                     </>
                   ) : (
                     <>
-                      <Save className='w-4 h-4' />
-                      Update Profile
+                      <Save className='w-5 h-5' />
+                      Save Changes
                     </>
                   )}
                 </button>
-              </div>
-
-              {/* Additional Info */}
-              <div className='bg-blue-50 border border-blue-200 rounded-xl p-4 mt-6'>
-                <h4 className='text-sm font-bold text-blue-800 mb-2'>
-                  Account Information
-                </h4>
-                <div className='space-y-1 text-sm text-blue-700'>
-                  <p>• Changes to your email may require verification</p>
-                  <p>
-                    • Your profile information is used for orders and shipping
-                  </p>
-                  <p>• Profile photos help personalize your account</p>
-                  <p>• All fields are required for a complete profile</p>
-                </div>
               </div>
             </form>
           )}

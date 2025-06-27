@@ -48,8 +48,7 @@ export default async function AccountPage() {
       throw error;
     }
 
-    // Only log actual authentication errors
-    console.error("Auth error:", error);
+    // Authentication failed - redirect to login
     redirect("/login?error=Authentication failed&redirect=/account");
   }
 }

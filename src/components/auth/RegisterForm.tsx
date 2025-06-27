@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from "lucide-react";
-import { useAuth } from "@/lib/auth/AuthContext";
+import { registerAction, type FormState } from "@/lib/auth/actions";
+import { useUserDataSync } from "@/hooks/useAuthSync";
 
 interface RegisterFormProps {
   redirectTo?: string;
@@ -13,68 +14,23 @@ export function RegisterForm({
   redirectTo = "/account",
 }: Readonly<RegisterFormProps>) {
   const router = useRouter();
-  const { register } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { syncUserData } = useUserDataSync();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user starts typing
-    if (error) setError(null);
-  };
+  // Use useActionState to handle server action
+  const [state, formAction, pending] = useActionState(registerAction, {});
 
-  const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    if (!validateForm()) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      await register({
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+  // Handle successful registration
+  useEffect(() => {
+    if (state.success) {
+      // Sync user data (cart/wishlist) after successful registration
+      syncUserData().then(() => {
+        router.push(redirectTo);
+        router.refresh(); // Refresh to update auth state
       });
-
-      // Successful registration - user should be automatically logged in
-      router.push(redirectTo);
-      router.refresh(); // Refresh to update auth state
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [state.success, router, redirectTo, syncUserData]);
 
   return (
     <div className='w-full max-w-md mx-auto'>
@@ -83,10 +39,10 @@ export function RegisterForm({
           <h2 className='text-2xl font-bold text-gray-900 mb-2'>
             Create Account
           </h2>
-          <p className='text-gray-600'>Join us and start shopping</p>
+          <p className='text-gray-600'>Join us today and start shopping</p>
         </div>
 
-        <form onSubmit={handleSubmit} className='space-y-6'>
+        <form action={formAction} className='space-y-6'>
           <div className='grid grid-cols-2 gap-4'>
             <div>
               <label
@@ -102,14 +58,20 @@ export function RegisterForm({
                   type='text'
                   id='firstName'
                   name='firstName'
-                  value={formData.firstName}
-                  onChange={handleChange}
                   required
-                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                   placeholder='First name'
                 />
               </div>
+              {state.errors?.firstName && (
+                <div className='mt-1 text-sm text-red-600'>
+                  {state.errors.firstName.map((error, index) => (
+                    <p key={index}>{error}</p>
+                  ))}
+                </div>
+              )}
             </div>
+
             <div>
               <label
                 htmlFor='lastName'
@@ -124,13 +86,18 @@ export function RegisterForm({
                   type='text'
                   id='lastName'
                   name='lastName'
-                  value={formData.lastName}
-                  onChange={handleChange}
                   required
-                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                   placeholder='Last name'
                 />
               </div>
+              {state.errors?.lastName && (
+                <div className='mt-1 text-sm text-red-600'>
+                  {state.errors.lastName.map((error, index) => (
+                    <p key={index}>{error}</p>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -148,13 +115,18 @@ export function RegisterForm({
                 type='email'
                 id='email'
                 name='email'
-                value={formData.email}
-                onChange={handleChange}
                 required
-                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your email'
               />
             </div>
+            {state.errors?.email && (
+              <div className='mt-1 text-sm text-red-600'>
+                {state.errors.email.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -171,11 +143,9 @@ export function RegisterForm({
                 type={showPassword ? "text" : "password"}
                 id='password'
                 name='password'
-                value={formData.password}
-                onChange={handleChange}
                 required
-                className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
-                placeholder='Enter your password'
+                className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                placeholder='Create a password'
               />
               <button
                 type='button'
@@ -188,53 +158,36 @@ export function RegisterForm({
                 )}
               </button>
             </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor='confirmPassword'
-              className='block text-sm font-semibold text-gray-700 mb-2'>
-              Confirm Password
-            </label>
-            <div className='relative'>
-              <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                <Lock className='h-5 w-5 text-gray-400' />
+            {state.errors?.password && (
+              <div className='mt-1 text-sm text-red-600'>
+                {state.errors.password.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
               </div>
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                id='confirmPassword'
-                name='confirmPassword'
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
-                placeholder='Confirm your password'
-              />
-              <button
-                type='button'
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer'>
-                {showConfirmPassword ? (
-                  <EyeOff className='h-5 w-5' />
-                ) : (
-                  <Eye className='h-5 w-5' />
-                )}
-              </button>
-            </div>
+            )}
           </div>
 
-          {error && (
+          {state.errors?.general && (
             <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2'>
               <div className='w-2 h-2 bg-red-500 rounded-full'></div>
-              {error}
+              {state.errors.general.map((error, index) => (
+                <p key={index}>{error}</p>
+              ))}
+            </div>
+          )}
+
+          {state.success && (
+            <div className='bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2'>
+              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+              {state.message}
             </div>
           )}
 
           <button
             type='submit'
-            disabled={isLoading}
-            className='w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg hover:shadow-xl cursor-pointer'>
-            {isLoading ? (
+            disabled={pending}
+            className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-4 rounded-lg font-semibold text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg hover:shadow-xl cursor-pointer'>
+            {pending ? (
               <>
                 <Loader2 className='h-5 w-5 animate-spin' />
                 Creating Account...
@@ -244,6 +197,17 @@ export function RegisterForm({
             )}
           </button>
         </form>
+
+        <div className='mt-6 text-center'>
+          <p className='text-sm text-gray-600'>
+            Already have an account?{" "}
+            <a
+              href='/login'
+              className='text-primary hover:text-primary/80 font-semibold cursor-pointer'>
+              Sign in here
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

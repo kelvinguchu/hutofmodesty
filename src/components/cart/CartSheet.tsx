@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X, Trash2, Plus, Minus, ShoppingBag, User } from "lucide-react";
-import { useCart } from "@/lib/cart/CartContext";
-import { useAuth } from "@/lib/auth/AuthContext";
+import { useCartStore } from "@/lib/cart/cartStore";
+import { useUserDataSync } from "@/hooks/useAuthSync";
 import {
   Sheet,
   SheetContent,
@@ -15,16 +15,19 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import type { AuthUser } from "@/lib/auth/types";
 
 interface CartSheetProps {
   children: React.ReactNode;
+  user?: AuthUser | null;
+  isAuthenticated?: boolean;
 }
 
-export function CartSheet({ children }: CartSheetProps) {
+export function CartSheet({ children, user, isAuthenticated }: CartSheetProps) {
   const [open, setOpen] = useState(false);
   const { items, itemCount, total, removeItem, updateQuantity, clearCart } =
-    useCart();
-  const { user } = useAuth();
+    useCartStore();
+  const { clearCartData } = useUserDataSync();
 
   const handleIncreaseQuantity = (id: string, currentQuantity: number) => {
     updateQuantity(id, currentQuantity + 1);
@@ -43,8 +46,18 @@ export function CartSheet({ children }: CartSheetProps) {
     setOpen(false);
   };
 
+  const handleClearCart = async () => {
+    if (isAuthenticated && user) {
+      // Clear both local and server cart data for authenticated users
+      await clearCartData();
+    } else {
+      // Clear only local cart data for guest users
+      clearCart();
+    }
+  };
+
   const getCheckoutUrl = () => {
-    if (!user) {
+    if (!isAuthenticated || !user) {
       // If user is not authenticated, redirect to login with checkout redirect
       return `/login?redirect=${encodeURIComponent("/checkout")}`;
     }
@@ -60,12 +73,12 @@ export function CartSheet({ children }: CartSheetProps) {
         <SheetHeader className='border-b border-gray-100 py-4 px-6 bg-gradient-to-r from-gray-50 to-white'>
           <div className='flex items-center justify-between'>
             <SheetTitle className='text-xl font-bold text-gray-900 flex items-center gap-3'>
-              <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center'>
-                <ShoppingBag className='w-4 h-4 text-white' />
+              <div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
+                <ShoppingBag className='w-4 h-4 text-primary-foreground' />
               </div>
               Shopping Cart
               {itemCount > 0 && (
-                <span className='bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full'>
+                <span className='bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full'>
                   {itemCount}
                 </span>
               )}
@@ -110,7 +123,7 @@ export function CartSheet({ children }: CartSheetProps) {
                         <h3 className='text-sm font-semibold text-gray-900 line-clamp-2 mb-1'>
                           <Link
                             href={`/products/${item.id}`}
-                            className='hover:text-purple-600 transition-colors cursor-pointer'>
+                            className='hover:text-primary transition-colors cursor-pointer'>
                             {item.name}
                           </Link>
                         </h3>
@@ -124,7 +137,7 @@ export function CartSheet({ children }: CartSheetProps) {
                               onClick={() =>
                                 handleDecreaseQuantity(item.id, item.quantity)
                               }
-                              className='p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 rounded-l-lg cursor-pointer'>
+                              className='p-2 text-gray-600 hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-l-lg cursor-pointer'>
                               <Minus className='w-4 h-4' />
                             </button>
                             <span className='px-4 py-2 text-sm font-semibold min-w-[40px] text-center bg-white border-x border-gray-200'>
@@ -134,7 +147,7 @@ export function CartSheet({ children }: CartSheetProps) {
                               onClick={() =>
                                 handleIncreaseQuantity(item.id, item.quantity)
                               }
-                              className='p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 rounded-r-lg cursor-pointer'>
+                              className='p-2 text-gray-600 hover:text-primary hover:bg-primary/5 transition-all duration-200 rounded-r-lg cursor-pointer'>
                               <Plus className='w-4 h-4' />
                             </button>
                           </div>
@@ -182,7 +195,7 @@ export function CartSheet({ children }: CartSheetProps) {
 
             <div className='flex items-center gap-3'>
               <button
-                onClick={clearCart}
+                onClick={handleClearCart}
                 className='text-sm text-gray-600 hover:text-gray-800 transition-colors flex items-center border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 cursor-pointer'>
                 <X className='w-4 h-4 mr-2' />
                 Clear Cart
@@ -190,9 +203,9 @@ export function CartSheet({ children }: CartSheetProps) {
               <Link
                 href={getCheckoutUrl()}
                 onClick={handleCheckout}
-                className='flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wider text-center transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer'>
+                className='flex-1 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold text-sm uppercase tracking-wider text-center transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer'>
                 <ShoppingBag className='h-4 w-4' />
-                {user ? "Checkout" : "Continue"}
+                {isAuthenticated && user ? "Checkout" : "Continue"}
               </Link>
             </div>
           </div>

@@ -29,7 +29,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ productName, category }) => {
           {/* Home - Always visible */}
           <Link
             href='/'
-            className='inline-flex items-center gap-1 sm:gap-1.5 text-gray-600 hover:text-purple-600 transition-colors duration-200 flex-shrink-0 group'>
+            className='inline-flex items-center gap-1 sm:gap-1.5 text-gray-600 hover:text-primary transition-colors duration-200 flex-shrink-0 group'>
             <Home className='w-3 h-3 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform duration-200' />
             <span className='font-medium hidden xs:inline'>Home</span>
           </Link>
@@ -39,7 +39,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ productName, category }) => {
           {/* Collections - Hidden on very small screens */}
           <Link
             href='/collections'
-            className='text-gray-600 hover:text-purple-600 transition-colors duration-200 flex-shrink-0 font-medium hidden sm:block'>
+            className='text-gray-600 hover:text-primary transition-colors duration-200 flex-shrink-0 font-medium hidden sm:block'>
             Collections
           </Link>
 
@@ -48,7 +48,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ productName, category }) => {
           {/* Category - Responsive truncation */}
           <Link
             href={`/collections/${categorySlug}`}
-            className='text-gray-600 hover:text-purple-600 transition-colors duration-200 flex-shrink-0 font-medium truncate max-w-[60px] xs:max-w-[80px] sm:max-w-[120px] md:max-w-none'
+            className='text-gray-600 hover:text-primary transition-colors duration-200 flex-shrink-0 font-medium truncate max-w-[60px] xs:max-w-[80px] sm:max-w-[120px] md:max-w-none'
             title={categoryName}>
             {categoryName}
           </Link>

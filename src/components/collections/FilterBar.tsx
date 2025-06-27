@@ -20,7 +20,6 @@ import {
   SheetContent,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -177,7 +176,7 @@ export default function FilterBar({
                 <Button
                   variant='outline'
                   size='sm'
-                  className='text-sm cursor-pointer whitespace-nowrap border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium'>
+                  className='text-sm cursor-pointer whitespace-nowrap border-2 border-gray-200 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 font-medium'>
                   Collection
                   <FaChevronDown className='ml-2 h-3 w-3' />
                 </Button>
@@ -192,7 +191,7 @@ export default function FilterBar({
                 <DropdownMenuItem asChild>
                   <Link
                     href={`/collections/${category.slug}`}
-                    className={`w-full cursor-pointer ${!subcategory ? "font-bold bg-purple-50 text-purple-700" : "hover:bg-gray-50"}`}>
+                    className={`w-full cursor-pointer ${!subcategory ? "font-bold bg-primary/5 text-primary" : "hover:bg-gray-50"}`}>
                     All {category.name}
                   </Link>
                 </DropdownMenuItem>
@@ -200,7 +199,7 @@ export default function FilterBar({
                   <DropdownMenuItem key={sibling.id} asChild>
                     <Link
                       href={`/collections/${category.slug}/${sibling.slug}`}
-                      className={`w-full cursor-pointer ${subcategory?.id === sibling.id ? "font-bold bg-purple-50 text-purple-700" : "hover:bg-gray-50"}`}>
+                      className={`w-full cursor-pointer ${subcategory?.id === sibling.id ? "font-bold bg-primary/5 text-primary" : "hover:bg-gray-50"}`}>
                       {sibling.name}
                     </Link>
                   </DropdownMenuItem>
@@ -215,7 +214,7 @@ export default function FilterBar({
               <Button
                 variant='outline'
                 size='sm'
-                className='text-sm cursor-pointer whitespace-nowrap border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium '>
+                className='text-sm cursor-pointer whitespace-nowrap border-2 border-gray-200 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 font-medium '>
                 Price
                 <FaChevronDown className='ml-2 h-3 w-3' />
               </Button>
@@ -230,14 +229,14 @@ export default function FilterBar({
               <DropdownMenuItem asChild>
                 <Link
                   href={`${basePath}?sort=price-asc`}
-                  className={`w-full cursor-pointer ${currentSort === "price-asc" ? "font-bold bg-purple-50 text-purple-700" : "hover:bg-gray-50"}`}>
+                  className={`w-full cursor-pointer ${currentSort === "price-asc" ? "font-bold bg-primary/5 text-primary" : "hover:bg-gray-50"}`}>
                   Low to High
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   href={`${basePath}?sort=price-desc`}
-                  className={`w-full cursor-pointer ${currentSort === "price-desc" ? "font-bold bg-purple-50 text-purple-700" : "hover:bg-gray-50"}`}>
+                  className={`w-full cursor-pointer ${currentSort === "price-desc" ? "font-bold bg-primary/5 text-primary" : "hover:bg-gray-50"}`}>
                   High to Low
                 </Link>
               </DropdownMenuItem>
@@ -250,7 +249,7 @@ export default function FilterBar({
               <Button
                 variant='outline'
                 size='sm'
-                className='text-sm whitespace-nowrap border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 font-medium cursor-pointer'>
+                className='text-sm whitespace-nowrap border-2 border-gray-200 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 font-medium cursor-pointer'>
                 Size
                 <FaChevronDown className='ml-2 h-3 w-3' />
               </Button>
@@ -268,7 +267,7 @@ export default function FilterBar({
                     <Button
                       variant='outline'
                       size='sm'
-                      className='w-full h-auto text-sm p-2 border-gray-200 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 cursor-pointer'>
+                      className='w-full h-auto text-sm p-2 border-gray-200 hover:bg-primary/5 hover:border-primary/30 transition-all duration-200 cursor-pointer'>
                       {size}
                     </Button>
                   </DropdownMenuItem>
@@ -293,11 +292,11 @@ export default function FilterBar({
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <button
-              className='fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200'
+              className='fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200'
               aria-label='Filter'>
               <SlidersHorizontal className='w-6 h-6' />
               {hasActiveFilters && (
-                <div className='absolute -top-2 -right-2 bg-emerald-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md'>
+                <div className='absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md'>
                   {activeFilterCount()}
                 </div>
               )}
@@ -326,7 +325,7 @@ export default function FilterBar({
                       key={option.value}
                       className={`block py-3 text-sm text-left w-full rounded-lg px-3 transition-all duration-200 cursor-pointer ${
                         selectedFilters.sort === option.value
-                          ? "font-bold text-purple-700 bg-purple-50"
+                          ? "font-bold text-primary bg-primary/5"
                           : "text-gray-600 hover:bg-gray-50"
                       }`}
                       onClick={() => setSort(option.value)}>
@@ -345,8 +344,8 @@ export default function FilterBar({
                       key={size}
                       className={`min-w-16 py-3 px-4 text-sm rounded-lg border-2 font-medium transition-all duration-200 cursor-pointer ${
                         selectedFilters.sizes.includes(size)
-                          ? "bg-purple-600 text-white border-purple-600 shadow-md"
-                          : "border-gray-200 text-gray-700 bg-white hover:border-purple-300 hover:bg-purple-50"
+                          ? "bg-primary text-primary-foreground border-primary shadow-md"
+                          : "border-gray-200 text-gray-700 bg-white hover:border-primary/30 hover:bg-primary/5"
                       }`}
                       onClick={() => toggleSize(size)}>
                       {size}
@@ -402,7 +401,7 @@ export default function FilterBar({
                   Reset
                 </Button>
                 <Button
-                  className='flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 font-bold transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'
+                  className='flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3 font-bold transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'
                   onClick={applyFilters}>
                   Apply Filters
                 </Button>

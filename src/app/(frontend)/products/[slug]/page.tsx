@@ -1,9 +1,15 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { getPayload } from "payload";
-import type { PaginatedDocs } from "payload";
-import type { Product } from "@/payload-types";
-import config from "@/payload.config";
+import type { Metadata } from "next";
+
+// Import our optimized cached data fetching functions
+import {
+  findProductById,
+  findRelatedProducts,
+  preloadProduct,
+  preloadRelatedProducts,
+  type UnifiedProduct,
+} from "@/lib/products/actions";
 
 import RelatedProducts from "@/components/products/RelatedProducts";
 import Breadcrumb from "@/components/products/Breadcrumb";
@@ -17,59 +23,51 @@ const ProductViewWithColorSelection = dynamic(
   { ssr: true }
 );
 
-// Extend Product type to include optional images array (if present)
-type ProductWithImages = Product & {
-  images?: { url: string }[];
-};
+// Static generation config - Enable ISR with 1 hour revalidation
+export const revalidate = 3600; // 1 hour
+export const dynamicParams = true; // Generate new pages on-demand for unknown product IDs
 
+// Generate static params for popular products at build time
+export async function generateStaticParams() {
+  // You can implement this to pre-generate popular product pages
+  // For now, we'll let Next.js generate them on-demand
+  return [];
+}
+
+// Optimized metadata generation using cached functions
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<Metadata> {
   const { slug } = await params;
 
   try {
-    // Initialize payload
-    const payload = await getPayload({ config });
+    // Use cached function for better performance
+    const product = await findProductById(slug);
 
-    // Fetch the product
-    const productQuery = await payload.find({
-      collection: "products",
-      where: {
-        id: {
-          equals: slug,
-        },
-      },
-      limit: 1,
-    });
-
-    if (productQuery.docs.length === 0) {
+    if (!product) {
       return {
-        title: "Not Found",
-        description: "Product not found",
+        title: "Product Not Found - Hut of Modesty",
+        description: "The requested product could not be found.",
       };
     }
 
-    const product = productQuery.docs[0] as ProductWithImages;
-
-    // Handle description properly, as it's a richText field
+    // Extract description text from rich text field
     let descriptionText = "";
     if (product.description) {
       const descUnknown = product.description as unknown;
-      // Check if it's a plain string
+
       if (typeof descUnknown === "string") {
         descriptionText = descUnknown.slice(0, 160);
       } else if (
         typeof descUnknown === "object" &&
         descUnknown !== null &&
         "root" in descUnknown &&
-        (descUnknown as any).root.children
+        (descUnknown as any).root?.children
       ) {
-        // Extract text from the richText structure
         descriptionText = (descUnknown as any).root.children
           .map((node: any) => {
-            // Try to extract text from paragraph nodes
             if (node.children && Array.isArray(node.children)) {
               return node.children
                 .filter((child: any) => child.text)
@@ -83,15 +81,39 @@ export async function generateMetadata({
       }
     }
 
+    // Get product image for Open Graph
+    let imageUrl = "";
+    if (product.mainImage) {
+      if (typeof product.mainImage === "object" && "url" in product.mainImage) {
+        imageUrl = product.mainImage.url || "";
+      }
+    }
+
     return {
       title: `${product.name} - Hut of Modesty`,
-      description: descriptionText || "View product details",
+      description:
+        descriptionText ||
+        `Shop ${product.name} at Hut of Modesty. Premium quality products with fast shipping.`,
+      openGraph: {
+        title: `${product.name} - Hut of Modesty`,
+        description:
+          descriptionText || `Shop ${product.name} at Hut of Modesty`,
+        images: imageUrl ? [{ url: imageUrl, alt: product.name }] : undefined,
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${product.name} - Hut of Modesty`,
+        description:
+          descriptionText || `Shop ${product.name} at Hut of Modesty`,
+        images: imageUrl ? [imageUrl] : undefined,
+      },
     };
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
       title: "Product - Hut of Modesty",
-      description: "View product details",
+      description: "View product details at Hut of Modesty",
     };
   }
 }
@@ -103,69 +125,42 @@ export default async function ProductPage({
 }>) {
   const { slug } = await params;
 
-  // Initialize payload
-  const payload = await getPayload({ config });
+  // Preload the product data early (starts fetching immediately)
+  preloadProduct(slug);
 
-  // Fetch the product
-  const productQuery = await payload.find({
-    collection: "products",
-    where: {
-      id: {
-        equals: slug,
-      },
-    },
-    limit: 1,
-  });
+  // Use cached function for optimized data fetching
+  const product = await findProductById(slug);
 
-  if (productQuery.docs.length === 0) {
+  if (!product) {
     notFound();
   }
 
-  const product = productQuery.docs[0] as ProductWithImages;
+  // Preload related products while we prepare the response
+  preloadRelatedProducts(product);
 
-  // Fetch related products (same category)
-  let relatedProducts: PaginatedDocs<Product> = {
-    docs: [],
-    totalDocs: 0,
-    limit: 0,
-    page: 1,
-    pagingCounter: 0,
-    totalPages: 0,
-    hasPrevPage: false,
-    hasNextPage: false,
-    prevPage: null,
-    nextPage: null,
-  };
-  try {
-    relatedProducts = await payload.find({
-      collection: "products",
-      where: {
-        and: [
-          {
-            category: {
-              equals:
-                typeof product.category === "string"
-                  ? product.category
-                  : product.category?.id,
-            },
-          },
-          {
-            id: {
-              not_equals: product.id,
-            },
-          },
-        ],
-      },
-      limit: 8,
+  // Fetch related products using cached function
+  const relatedProducts = await findRelatedProducts(product, 8);
+
+  // Extract additional images from color variations (clothing specific)
+  const additionalImages: { url: string; alt: string }[] = [];
+
+  if ("colorVariations" in product && product.colorVariations) {
+    product.colorVariations.forEach((variation: any) => {
+      if (
+        variation.additionalImages &&
+        Array.isArray(variation.additionalImages)
+      ) {
+        variation.additionalImages.forEach((img: any) => {
+          if (img.image && typeof img.image === "object" && img.image.url) {
+            additionalImages.push({
+              url: img.image.url,
+              alt: `${product.name} - ${variation.color}`,
+            });
+          }
+        });
+      }
     });
-  } catch (error) {
-    console.error("Error fetching related products:", error);
   }
-
-  // Fetch additional product images if they exist
-  const additionalImages = Array.isArray(product.images)
-    ? product.images.map((img) => ({ url: img.url, alt: product.name }))
-    : [];
 
   return (
     <div className='w-full bg-white md:mt-4 pb-24 md:pb-0'>
@@ -177,10 +172,10 @@ export default async function ProductPage({
           additionalImages={additionalImages}
         />
 
-        {relatedProducts.docs.length > 0 && (
+        {relatedProducts.length > 0 && (
           <div className=''>
             <RelatedProducts
-              products={relatedProducts.docs as any}
+              products={relatedProducts as any}
               currentProductId={product.id}
             />
           </div>

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Package, Calendar, Truck, CheckCircle, Clock } from "lucide-react";
-import { useAuth } from "@/lib/auth/AuthContext";
 import {
   Sheet,
   SheetContent,
@@ -11,9 +10,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { AuthUser } from "@/lib/auth/types";
 
 interface OrdersSheetProps {
   children: React.ReactNode;
+  user: AuthUser | null;
 }
 
 interface OrderItem {
@@ -72,8 +73,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
-  const { user } = useAuth();
+export function OrdersSheet({ children, user }: Readonly<OrdersSheetProps>) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +129,7 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
           </p>
           <a
             href='/login'
-            className='inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'>
+            className='inline-block bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'>
             Sign In
           </a>
         </div>
@@ -139,7 +139,7 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
     if (isLoading) {
       return (
         <div className='flex flex-col items-center justify-center h-64 text-center p-6'>
-          <div className='w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-6'></div>
+          <div className='w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-6'></div>
           <p className='text-gray-600 font-medium'>Loading your orders...</p>
         </div>
       );
@@ -157,7 +157,7 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
           <p className='text-red-600 font-medium mb-6'>{error}</p>
           <button
             onClick={fetchOrders}
-            className='inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'>
+            className='inline-block bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'>
             Try Again
           </button>
         </div>
@@ -201,20 +201,20 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
                   <p className='text-lg font-bold text-gray-900'>
                     ${order.total.toFixed(2)}
                   </p>
-                  <p className='text-sm text-gray-500 flex items-center gap-2'>
-                    <Calendar className='w-4 h-4' />
+                  <p className='text-sm text-gray-500 flex items-center gap-1'>
+                    <Calendar className='w-3 h-3' />
                     {formatDate(order.createdAt)}
                   </p>
                 </div>
               </div>
 
               {/* Order Items */}
-              <div className='space-y-3 mb-4'>
+              <div className='space-y-3'>
                 {order.items.map((item) => (
                   <div
                     key={item.id}
-                    className='flex items-center gap-4 p-3 bg-gray-50 rounded-lg'>
-                    <div className='relative w-16 h-16 bg-white overflow-hidden rounded-lg flex-shrink-0 border border-gray-100'>
+                    className='flex items-center gap-3 bg-gray-50 rounded-lg p-3'>
+                    <div className='relative w-12 h-12 bg-white rounded-lg overflow-hidden border border-gray-200 flex-shrink-0'>
                       {item.image && (
                         <Image
                           src={item.image}
@@ -225,16 +225,16 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
                       )}
                     </div>
                     <div className='flex-grow min-w-0'>
-                      <h4 className='font-bold text-gray-900 line-clamp-1 mb-1'>
+                      <h4 className='text-sm font-semibold text-gray-900 line-clamp-1'>
                         {item.name}
                       </h4>
-                      <p className='text-sm text-gray-600'>
+                      <p className='text-xs text-gray-500'>
                         Qty: {item.quantity} × ${item.price.toFixed(2)}
                       </p>
                     </div>
                     <div className='text-right'>
-                      <p className='font-bold text-gray-900'>
-                        ${(item.quantity * item.price).toFixed(2)}
+                      <p className='text-sm font-bold text-gray-900'>
+                        ${(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -242,13 +242,19 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
               </div>
 
               {/* Shipping Address */}
-              <div className='pt-3 border-t border-gray-200'>
-                <p className='text-sm text-gray-600'>
-                  <span className='font-bold text-gray-900'>Shipping to:</span>{" "}
-                  {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
-                  {order.shippingAddress.country}
-                </p>
-              </div>
+              {order.shippingAddress && (
+                <div className='mt-4 pt-4 border-t border-gray-100'>
+                  <h4 className='text-sm font-semibold text-gray-900 mb-2'>
+                    Shipping Address
+                  </h4>
+                  <p className='text-sm text-gray-600'>
+                    {order.shippingAddress.address}
+                    <br />
+                    {order.shippingAddress.city},{" "}
+                    {order.shippingAddress.country}
+                  </p>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -262,12 +268,17 @@ export function OrdersSheet({ children }: Readonly<OrdersSheetProps>) {
       <SheetContent
         side='right'
         className='sm:min-w-[40vw] min-w-[95vw] bg-white p-0 overflow-y-auto border-l border-gray-200 shadow-2xl'>
-        <SheetHeader className='border-b border-gray-100 py-4 px-6'>
+        <SheetHeader className='border-b border-gray-100 py-4 px-6 bg-gradient-to-r from-gray-50 to-white'>
           <SheetTitle className='text-xl font-bold text-gray-900 flex items-center gap-3'>
-            <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center'>
-              <Package className='w-4 h-4 text-white' />
+            <div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
+              <Package className='w-4 h-4 text-primary-foreground' />
             </div>
-            My Orders
+            Order History
+            {orders.length > 0 && (
+              <span className='bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full'>
+                {orders.length}
+              </span>
+            )}
           </SheetTitle>
         </SheetHeader>
 

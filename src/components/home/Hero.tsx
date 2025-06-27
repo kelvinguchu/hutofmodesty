@@ -8,26 +8,44 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const slides = [
   {
-    desktopImage: "/hero/hero-thobe.jpg",
-    mobileImage: "/qamis/qamis3.webp",
-    title: "PREMIUM QAMIS",
-    subtitle: "Crafted for Nobility",
+    image: "/hero/hero-abaya.jpg",
+    title: "ELEGANT CLOTHING",
+    subtitle: "Grace Redefined",
     description:
-      "Discover the epitome of masculine elegance with our handcrafted qamis collection",
-    cta: "/collections/qamis",
-    ctaText: "Enter Collection",
+      "Discover our exquisite collection of abayas, dresses, and dirac designs crafted for timeless elegance",
+    cta: "/collections/clothing",
+    ctaText: "Explore Collection",
+    accent: "purple",
+  },
+  {
+    image: "/hero/hom-shoes.jpg",
+    title: "PREMIUM FOOTWEAR",
+    subtitle: "Step in Style",
+    description:
+      "Walk with confidence in our carefully curated collection of elegant shoes",
+    cta: "/collections/footwear",
+    ctaText: "Shop Footwear",
     accent: "emerald",
   },
   {
-    desktopImage: "/hero/hero-abaya.jpg",
-    mobileImage: "/abayas/abaya5.webp",
-    title: "IMPERIAL ABAYAS",
-    subtitle: "Grace Redefined",
+    image: "/hero/hom-bag.avif",
+    title: "LUXURY ACCESSORIES",
+    subtitle: "Complete Your Look",
     description:
-      "Embrace timeless sophistication with our exquisite abaya designs",
-    cta: "/collections/abaya",
-    ctaText: "Explore Elegance",
-    accent: "purple",
+      "Enhance your style with our premium collection of bags and jewelry",
+    cta: "/collections/accessories",
+    ctaText: "Browse Accessories",
+    accent: "amber",
+  },
+  {
+    image: "/hero/bakhoor.jpg",
+    title: "EXQUISITE FRAGRANCES",
+    subtitle: "Scents of Sophistication",
+    description:
+      "Immerse yourself in our captivating collection of perfumes and bakhoor",
+    cta: "/collections/fragrances",
+    ctaText: "Discover Scents",
+    accent: "rose",
   },
 ];
 
@@ -72,7 +90,7 @@ export default function Hero() {
         }
         return prev + 1;
       });
-    }, 80); // 8 seconds total (100 * 80ms)
+    }, 100); // 10 seconds total (100 * 100ms)
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -105,22 +123,13 @@ export default function Hero() {
           className='absolute inset-0'>
           {/* Background Image with Overlay */}
           <div className='relative w-full h-full'>
-            {/* Desktop Image */}
+            {/* Shared Image for both mobile and desktop */}
             <Image
-              src={slides[currentSlide].desktopImage}
+              src={slides[currentSlide].image}
               alt={slides[currentSlide].title}
               fill
               priority={currentSlide === 0}
-              className='object-cover hidden md:block'
-              quality={95}
-            />
-            {/* Mobile Image */}
-            <Image
-              src={slides[currentSlide].mobileImage}
-              alt={slides[currentSlide].title}
-              fill
-              priority={currentSlide === 0}
-              className='object-cover object-center md:hidden'
+              className='object-cover object-center'
               quality={95}
             />
             {/* Royal Gradient Overlay */}
@@ -130,7 +139,11 @@ export default function Hero() {
               className={`absolute inset-0 ${
                 currentAccent === "emerald"
                   ? "bg-gradient-to-br from-emerald-900/20 to-transparent"
-                  : "bg-gradient-to-br from-purple-900/20 to-transparent"
+                  : currentAccent === "purple"
+                    ? "bg-gradient-to-br from-purple-900/20 to-transparent"
+                    : currentAccent === "amber"
+                      ? "bg-gradient-to-br from-amber-900/20 to-transparent"
+                      : "bg-gradient-to-br from-rose-900/20 to-transparent"
               }`}></div>
           </div>
 
@@ -148,7 +161,11 @@ export default function Hero() {
                     className={`text-4xl ${
                       currentAccent === "emerald"
                         ? "text-emerald-400"
-                        : "text-purple-400"
+                        : currentAccent === "purple"
+                          ? "text-purple-400"
+                          : currentAccent === "amber"
+                            ? "text-amber-400"
+                            : "text-rose-400"
                     }`}
                   />
                 </motion.div>
@@ -161,7 +178,11 @@ export default function Hero() {
                   className={`text-sm md:text-base uppercase tracking-[0.3em] font-light mb-4 ${
                     currentAccent === "emerald"
                       ? "text-emerald-300"
-                      : "text-purple-300"
+                      : currentAccent === "purple"
+                        ? "text-purple-300"
+                        : currentAccent === "amber"
+                          ? "text-amber-300"
+                          : "text-rose-300"
                   }`}>
                   {slides[currentSlide].subtitle}
                 </motion.p>
@@ -194,13 +215,21 @@ export default function Hero() {
                     className={`group relative inline-flex items-center px-8 py-4 text-white font-medium text-lg uppercase tracking-wider transition-all duration-300 overflow-hidden border-2 ${
                       currentAccent === "emerald"
                         ? "border-emerald-400 hover:border-emerald-300"
-                        : "border-purple-400 hover:border-purple-300"
+                        : currentAccent === "purple"
+                          ? "border-purple-400 hover:border-purple-300"
+                          : currentAccent === "amber"
+                            ? "border-amber-400 hover:border-amber-300"
+                            : "border-rose-400 hover:border-rose-300"
                     }`}>
                     <span
                       className={`absolute inset-0 ${
                         currentAccent === "emerald"
                           ? "bg-emerald-400"
-                          : "bg-purple-400"
+                          : currentAccent === "purple"
+                            ? "bg-purple-400"
+                            : currentAccent === "amber"
+                              ? "bg-amber-400"
+                              : "bg-rose-400"
                       } transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300`}></span>
                     <span className='relative z-10 group-hover:text-slate-900 transition-colors duration-300'>
                       {slides[currentSlide].ctaText}
@@ -233,7 +262,7 @@ export default function Hero() {
                 disabled={isTransitioning}
                 className='relative'>
                 <div
-                  className={`w-16 h-1 rounded-full ${
+                  className={`w-12 h-1 rounded-full ${
                     currentSlide === index ? "bg-white/40" : "bg-white/20"
                   }`}>
                   {currentSlide === index && (
@@ -241,7 +270,11 @@ export default function Hero() {
                       className={`h-full rounded-full transition-all duration-100 ${
                         slide.accent === "emerald"
                           ? "bg-emerald-400"
-                          : "bg-purple-400"
+                          : slide.accent === "purple"
+                            ? "bg-purple-400"
+                            : slide.accent === "amber"
+                              ? "bg-amber-400"
+                              : "bg-rose-400"
                       }`}
                       style={{ width: `${progress}%` }}
                     />

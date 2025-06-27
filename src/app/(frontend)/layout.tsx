@@ -3,13 +3,12 @@ import "../global.css";
 import { cinzel, cormorant, montserrat, dmSans } from "../fonts";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { CartProvider } from "@/lib/cart/CartContext";
-import { AuthProvider } from "@/lib/auth/AuthContext";
-import { AuthSyncWrapper } from "@/components/auth/AuthSyncWrapper";
+
 import { NavigationLoadingProvider } from "@/components/providers/NavigationLoadingProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { getPayload } from "payload";
 import config from "@/payload.config";
+import { verifySession } from "@/lib/auth/dal";
 import type { Metadata, Viewport } from "next";
 import type { CategoryUI } from "@/types/navigation";
 
@@ -21,9 +20,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Hut of Modesty - Premium Qamis & Abaya Clothing",
+  title: "Hut of Modesty - Premium Modest Fashion & Accessories",
   description:
-    "Premium Qamis & Abaya clothing store featuring elegant collections for men and women",
+    "Premium modest fashion store featuring elegant clothing, footwear, accessories, and fragrances",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -45,11 +44,18 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Fetch categories on the server
+  // Fetch categories and user data on the server
   let categories: CategoryUI[] = [];
+  let sessionData: { isAuth: boolean; user: any } = {
+    isAuth: false,
+    user: null,
+  };
 
   try {
     const payload = await getPayload({ config });
+
+    // Fetch user session data
+    sessionData = await verifySession();
 
     // Fetch categories and subcategories in parallel
     const [categoriesData, subcategoriesData] = await Promise.all([
@@ -92,9 +98,11 @@ export default async function RootLayout({
 
     categories = Object.values(categoriesMap);
   } catch (error) {
-    console.error("Error fetching categories in layout:", error);
-    // Re-throw the error to be handled by Next.js error boundaries
-    throw error;
+    // Don't throw error for auth failures, just use default unauthenticated state
+    // Only throw for critical errors like category fetching
+    if (error instanceof Error && error.message?.includes("categories")) {
+      throw error;
+    }
   }
 
   return (
@@ -115,18 +123,16 @@ export default async function RootLayout({
         <link rel='apple-touch-startup-image' href='/icons/splash.png' />
       </head>
       <body className='font-body bg-[#f9f6f2]'>
-        <AuthProvider>
-          <CartProvider>
-            <NavigationLoadingProvider>
-              <AuthSyncWrapper>
-                <Navbar categories={categories} />
-                <main className='md:pt-[76px]'>{children}</main>
-                <Footer />
-              </AuthSyncWrapper>
-              <Toaster />
-            </NavigationLoadingProvider>
-          </CartProvider>
-        </AuthProvider>
+        <NavigationLoadingProvider>
+          <Navbar
+            categories={categories}
+            user={sessionData.user}
+            isAuthenticated={sessionData.isAuth}
+          />
+          <main className='md:pt-[76px]'>{children}</main>
+          <Footer />
+          <Toaster />
+        </NavigationLoadingProvider>
       </body>
     </html>
   );

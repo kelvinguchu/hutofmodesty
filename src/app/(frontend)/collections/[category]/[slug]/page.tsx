@@ -5,10 +5,15 @@ import config from "@/payload.config";
 import SubcategoryDisplay from "@/components/collections/SubcategoryDisplay";
 import {
   Subcategory,
-  Product,
   SubcategoriesSelect,
-  ProductsSelect,
+  Clothing,
+  Footwear,
+  Fragrance,
+  Accessory,
 } from "@/payload-types";
+
+// Union type for all product types
+type Product = Clothing | Footwear | Fragrance | Accessory;
 import type { PaginatedDocs } from "payload";
 
 export async function generateMetadata({
@@ -81,7 +86,7 @@ export async function generateMetadata({
 export default async function SubcategoryPage({
   params,
   searchParams,
-}: Readonly <{
+}: Readonly<{
   params: Promise<{ category: string; slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }>) {
@@ -147,19 +152,35 @@ export default async function SubcategoryPage({
         },
         sort: "displayOrder",
       }),
-      payload.find<"products", ProductsSelect<true>>({
-        collection: "products",
-        where: {
-          subcategory: { equals: subcategoryId },
-        },
-        sort:
-          sort === "price-desc"
-            ? "-price"
-            : sort === "price-asc"
-              ? "price"
-              : "-createdAt",
-        limit: 12,
-      }),
+      // Determine which collection to query based on category slug
+      (async () => {
+        const collectionMap: { [key: string]: string } = {
+          clothing: "clothing",
+          footwear: "footwear",
+          accessories: "accessories",
+          fragrances: "fragrances",
+        };
+
+        const collectionSlug = collectionMap[category];
+        if (!collectionSlug) {
+          return { docs: [], totalDocs: 0 };
+        }
+
+        return payload.find({
+          collection: collectionSlug as any,
+          where: {
+            subcategory: { equals: subcategoryId },
+          },
+          sort:
+            sort === "price-desc"
+              ? "-price"
+              : sort === "price-asc"
+                ? "price"
+                : "-createdAt",
+          limit: 12,
+          depth: 2,
+        });
+      })(),
     ]);
 
     return (

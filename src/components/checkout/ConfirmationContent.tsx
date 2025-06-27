@@ -95,7 +95,7 @@ export default function ConfirmationContent() {
         </p>
         <Link
           href='/'
-          className='inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer'>
+          className='inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer'>
           <ShoppingBag className='w-5 h-5' />
           Return to Home
         </Link>
@@ -152,8 +152,8 @@ export default function ConfirmationContent() {
           {/* Customer Information */}
           <div className='bg-white rounded-xl shadow-lg border border-gray-100 p-6'>
             <div className='flex items-center gap-3 mb-4'>
-              <div className='w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center'>
-                <User className='w-5 h-5 text-purple-600' />
+              <div className='w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center'>
+                <User className='w-5 h-5 text-primary' />
               </div>
               <h2 className='text-xl font-bold text-gray-900'>
                 Customer Information
@@ -279,7 +279,7 @@ export default function ConfirmationContent() {
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
           <Link
             href='/'
-            className='inline-flex items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer'>
+            className='inline-flex items-center justify-center gap-3 bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer'>
             <ShoppingBag className='w-5 h-5' />
             Continue Shopping
           </Link>
@@ -298,13 +298,13 @@ export default function ConfirmationContent() {
           <p className='text-sm'>
             <a
               href='mailto:support@hutofmodesty.com'
-              className='text-purple-600 hover:text-purple-700 font-medium cursor-pointer'>
+              className='text-primary hover:text-primary/80 font-medium cursor-pointer'>
               Contact Support
             </a>
             {" or "}
             <a
               href='tel:+254700123456'
-              className='text-purple-600 hover:text-purple-700 font-medium cursor-pointer'>
+              className='text-primary hover:text-primary/80 font-medium cursor-pointer'>
               Call Us
             </a>
           </p>

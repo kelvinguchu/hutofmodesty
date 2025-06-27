@@ -71,7 +71,10 @@ export interface Config {
     media: Media;
     categories: Category;
     subcategories: Subcategory;
-    products: Product;
+    clothing: Clothing;
+    footwear: Footwear;
+    fragrances: Fragrance;
+    accessories: Accessory;
     orders: Order;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -83,7 +86,10 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     subcategories: SubcategoriesSelect<false> | SubcategoriesSelect<true>;
-    products: ProductsSelect<false> | ProductsSelect<true>;
+    clothing: ClothingSelect<false> | ClothingSelect<true>;
+    footwear: FootwearSelect<false> | FootwearSelect<true>;
+    fragrances: FragrancesSelect<false> | FragrancesSelect<true>;
+    accessories: AccessoriesSelect<false> | AccessoriesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -225,7 +231,7 @@ export interface Category {
   id: string;
   name: string;
   /**
-   * URL-friendly version of the name (e.g., "abaya", "qamis")
+   * URL-friendly version of the name (e.g., "clothing", "accessories")
    */
   slug: string;
   description?: string | null;
@@ -278,9 +284,9 @@ export interface Subcategory {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
+ * via the `definition` "clothing".
  */
-export interface Product {
+export interface Clothing {
   id: string;
   name: string;
   description: {
@@ -299,15 +305,16 @@ export interface Product {
     [k: string]: unknown;
   };
   price: number;
+  /**
+   * Auto-filled with 'Clothing' category (can be changed if needed)
+   */
   category: string | Category;
   /**
-   * Select a subcategory that belongs to the selected main category
+   * Select clothing subcategory (Abayas, Dresses, Dirac)
    */
   subcategory?: (string | null) | Subcategory;
   status: 'active' | 'draft' | 'out-of-stock';
-  featured?: boolean | null;
   trending?: boolean | null;
-  sku?: string | null;
   mainImage: string | Media;
   color: string;
   /**
@@ -346,6 +353,170 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * e.g., Cotton, Silk, Polyester blend
+   */
+  fabric?: string | null;
+  /**
+   * How to care for this garment
+   */
+  careInstructions?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footwear".
+ */
+export interface Footwear {
+  id: string;
+  name: string;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  price: number;
+  /**
+   * Auto-filled with 'Footwear' category (can be changed if needed)
+   */
+  category: string | Category;
+  /**
+   * Select footwear subcategory (Shoes, etc.)
+   */
+  subcategory?: (string | null) | Subcategory;
+  status: 'active' | 'draft' | 'out-of-stock';
+  trending?: boolean | null;
+  mainImage: string | Media;
+  /**
+   * Starting size (e.g., 35)
+   */
+  sizeFrom: number;
+  /**
+   * Ending size (e.g., 42). Use same as 'Size From' for single size
+   */
+  sizeTo: number;
+  /**
+   * e.g., Leather, Canvas, Synthetic
+   */
+  material?: string | null;
+  /**
+   * e.g., Flats, Heels, Boots, Sandals, Sneakers
+   */
+  shoeType?: string | null;
+  /**
+   * How to care for this footwear
+   */
+  careInstructions?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fragrances".
+ */
+export interface Fragrance {
+  id: string;
+  name: string;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  price: number;
+  /**
+   * Auto-filled with 'Fragrances' category (can be changed if needed)
+   */
+  category: string | Category;
+  /**
+   * Select fragrance subcategory (Perfumes, Bakhoor, etc.)
+   */
+  subcategory?: (string | null) | Subcategory;
+  status: 'active' | 'draft' | 'out-of-stock';
+  trending?: boolean | null;
+  mainImage: string | Media;
+  /**
+   * Enter the volume amount (unit selected below)
+   */
+  volume: number;
+  volumeUnit: 'ml' | 'oz' | 'g';
+  longevity?: ('light' | 'moderate' | 'long' | 'very-long') | null;
+  targetGender?: ('men' | 'women' | 'unisex') | null;
+  occasion?: ('daily' | 'evening' | 'special' | 'office' | 'seasonal') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accessories".
+ */
+export interface Accessory {
+  id: string;
+  name: string;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  price: number;
+  /**
+   * Auto-filled with 'Accessories' category (can be changed if needed)
+   */
+  category: string | Category;
+  /**
+   * Select accessory subcategory (Jewelry, Bags, etc.)
+   */
+  subcategory?: (string | null) | Subcategory;
+  status: 'active' | 'draft' | 'out-of-stock';
+  trending?: boolean | null;
+  mainImage: string | Media;
+  accessoryType: 'jewelry' | 'bag' | 'scarf' | 'belt' | 'watch' | 'sunglasses' | 'hair' | 'other';
+  /**
+   * Select applicable sizes for this accessory
+   */
+  availableSizes?: ('S' | 'M' | 'L' | 'XL' | 'XXL')[] | null;
+  /**
+   * Only for jewelry items
+   */
+  jewelryType?: ('necklace' | 'earrings' | 'bracelet' | 'ring' | 'brooch' | 'anklet' | 'other') | null;
+  /**
+   * Only for jewelry items
+   */
+  metalType?: ('gold' | 'silver' | 'rose-gold' | 'platinum' | 'stainless-steel' | 'alloy' | 'other') | null;
+  /**
+   * How to care for this accessory
+   */
+  careInstructions?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -430,8 +601,20 @@ export interface PayloadLockedDocument {
         value: string | Subcategory;
       } | null)
     | ({
-        relationTo: 'products';
-        value: string | Product;
+        relationTo: 'clothing';
+        value: string | Clothing;
+      } | null)
+    | ({
+        relationTo: 'footwear';
+        value: string | Footwear;
+      } | null)
+    | ({
+        relationTo: 'fragrances';
+        value: string | Fragrance;
+      } | null)
+    | ({
+        relationTo: 'accessories';
+        value: string | Accessory;
       } | null)
     | ({
         relationTo: 'orders';
@@ -560,18 +743,16 @@ export interface SubcategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products_select".
+ * via the `definition` "clothing_select".
  */
-export interface ProductsSelect<T extends boolean = true> {
+export interface ClothingSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   price?: T;
   category?: T;
   subcategory?: T;
   status?: T;
-  featured?: T;
   trending?: T;
-  sku?: T;
   mainImage?: T;
   color?: T;
   colorCode?: T;
@@ -604,6 +785,71 @@ export interface ProductsSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  fabric?: T;
+  careInstructions?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footwear_select".
+ */
+export interface FootwearSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  price?: T;
+  category?: T;
+  subcategory?: T;
+  status?: T;
+  trending?: T;
+  mainImage?: T;
+  sizeFrom?: T;
+  sizeTo?: T;
+  material?: T;
+  shoeType?: T;
+  careInstructions?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fragrances_select".
+ */
+export interface FragrancesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  price?: T;
+  category?: T;
+  subcategory?: T;
+  status?: T;
+  trending?: T;
+  mainImage?: T;
+  volume?: T;
+  volumeUnit?: T;
+  longevity?: T;
+  targetGender?: T;
+  occasion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accessories_select".
+ */
+export interface AccessoriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  price?: T;
+  category?: T;
+  subcategory?: T;
+  status?: T;
+  trending?: T;
+  mainImage?: T;
+  accessoryType?: T;
+  availableSizes?: T;
+  jewelryType?: T;
+  metalType?: T;
+  careInstructions?: T;
   updatedAt?: T;
   createdAt?: T;
 }

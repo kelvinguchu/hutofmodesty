@@ -21,13 +21,13 @@ export default function SectionTitle({
     switch (accent) {
       case "emerald":
         return {
-          primary: "emerald-500",
-          light: darkMode ? "emerald-900/20" : "emerald-50",
+          primary: "accent",
+          light: darkMode ? "accent/20" : "accent/10",
         };
       case "purple":
         return {
-          primary: "purple-500",
-          light: darkMode ? "purple-900/20" : "purple-50",
+          primary: "primary",
+          light: darkMode ? "primary/20" : "primary/10",
         };
       default:
         return {
@@ -52,7 +52,7 @@ export default function SectionTitle({
         )}
 
         <h2
-          className={`text-2xl sm:text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-5 sm:mb-6 leading-tight px-2 sm:px-0`}>
+          className={`text-2xl sm:text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} ${darkMode ? "mb-5 sm:mb-6" : "mb-0"} leading-tight px-2 sm:px-0`}>
           {title.split(" ").map((word, index) => (
             <span
               key={index}
@@ -64,15 +64,15 @@ export default function SectionTitle({
           ))}
         </h2>
 
-        {/* Subtle decorative line - responsive */}
-        <div className='flex items-center justify-center mb-6 sm:mb-8'>
-          <div
-            className={`w-8 sm:w-10 md:w-12 h-px ${darkMode ? "bg-white/20" : "bg-gray-200"}`}></div>
-          <div
-            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 bg-${colors.primary} mx-3 sm:mx-4 transform rotate-45`}></div>
-          <div
-            className={`w-8 sm:w-10 md:w-12 h-px ${darkMode ? "bg-white/20" : "bg-gray-200"}`}></div>
-        </div>
+        {/* Subtle decorative line - only for dark mode (FAQ section) */}
+        {darkMode && (
+          <div className='flex items-center justify-center mb-6 sm:mb-8'>
+            <div className={`w-8 sm:w-10 md:w-12 h-px bg-white/20`}></div>
+            <div
+              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 bg-${colors.primary} mx-3 sm:mx-4 transform rotate-45`}></div>
+            <div className={`w-8 sm:w-10 md:w-12 h-px bg-white/20`}></div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,19 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { FaShoppingBag, FaHeart } from "react-icons/fa";
 import { TbBoxOff } from "react-icons/tb";
 import ProductCard from "@/components/home/ProductCard";
 import FilterBar from "./FilterBar";
-import type { Category, Subcategory, Product } from "@/payload-types";
+import type {
+  Category,
+  Subcategory,
+  Clothing,
+  Footwear,
+  Fragrance,
+  Accessory,
+} from "@/payload-types";
+
+// Union type for all product types
+type Product = Clothing | Footwear | Fragrance | Accessory;
 
 interface CategoryDisplayProps {
   category: Category;
@@ -22,14 +30,8 @@ export default function CategoryDisplay({
   totalProducts,
   currentSort,
 }: CategoryDisplayProps) {
-  // Determine accent color based on category slug
-  const getAccentColor = (): "emerald" | "purple" | "default" => {
-    if (category.slug === "abaya") return "purple";
-    if (category.slug === "qamis") return "emerald";
-    return "default";
-  };
-
-  const accentColor = getAccentColor();
+  // Use unified accent color for all categories
+  const accentColor: "purple" = "purple";
 
   return (
     <div className='w-full bg-gradient-to-br from-gray-50 via-white to-purple-50/20 lg:mt-4'>
@@ -39,13 +41,13 @@ export default function CategoryDisplay({
           <div className='flex items-center text-sm whitespace-nowrap'>
             <Link
               href='/'
-              className='text-gray-600 hover:text-purple-600 transition-colors font-medium cursor-pointer'>
+              className='text-gray-600 hover:text-primary transition-colors font-medium cursor-pointer'>
               Home
             </Link>
             <span className='mx-3 text-gray-400'>/</span>
             <Link
               href='/collections'
-              className='text-gray-600 hover:text-purple-600 transition-colors font-medium cursor-pointer'>
+              className='text-gray-600 hover:text-primary transition-colors font-medium cursor-pointer'>
               Collections
             </Link>
             <span className='mx-3 text-gray-400'>/</span>
@@ -59,7 +61,7 @@ export default function CategoryDisplay({
         <div className='mb-8 text-center'>
           <h2 className='text-2xl sm:text-3xl font-bold text-gray-900 inline-block relative mb-3'>
             {category.name}
-            <div className='absolute left-1/2 transform -translate-x-1/2 -bottom-1 w-12 h-1 bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full'></div>
+            <div className='absolute left-1/2 transform -translate-x-1/2 -bottom-1 w-12 h-1 bg-primary rounded-full'></div>
           </h2>
           <p className='text-gray-600 font-medium'>
             {totalProducts} {totalProducts === 1 ? "product" : "products"}{" "}
@@ -96,7 +98,7 @@ export default function CategoryDisplay({
                     className='bg-white text-gray-400 px-4 py-3 text-sm border-r border-gray-200 cursor-not-allowed'>
                     Previous
                   </button>
-                  <span className='bg-purple-600 text-white font-bold px-4 py-3 text-sm border-r border-gray-200'>
+                  <span className='bg-primary text-primary-foreground font-bold px-4 py-3 text-sm border-r border-gray-200'>
                     1
                   </span>
                   <button
@@ -125,7 +127,7 @@ export default function CategoryDisplay({
             </p>
             <Link
               href='/collections'
-              className='inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'>
+              className='inline-block bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer'>
               Browse Collections
             </Link>
           </div>

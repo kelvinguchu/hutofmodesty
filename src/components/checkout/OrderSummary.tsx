@@ -3,10 +3,10 @@
 import React from "react";
 import Image from "next/image";
 import { Package, ShoppingCart } from "lucide-react";
-import { useCart } from "@/lib/cart/CartContext";
+import { useCartStore } from "@/lib/cart/cartStore";
 
 export function OrderSummary() {
-  const { items, itemCount, total } = useCart();
+  const { items, itemCount, total } = useCartStore();
   const shippingFee = 2.5; // Fixed shipping fee in USD
   const finalTotal = total + shippingFee;
 
@@ -87,8 +87,8 @@ export function OrderSummary() {
           </div>
 
           {/* Items Count Badge */}
-          <div className='bg-purple-50 rounded-lg p-3 text-center'>
-            <p className='text-sm text-purple-700'>
+          <div className='bg-primary/5 rounded-lg p-3 text-center'>
+            <p className='text-sm text-primary'>
               <span className='font-bold'>{itemCount}</span>{" "}
               {itemCount === 1 ? "item" : "items"} in your order
             </p>

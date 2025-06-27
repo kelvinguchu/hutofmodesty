@@ -22,7 +22,7 @@ export const Categories: CollectionConfig = {
       unique: true,
       admin: {
         description:
-          'URL-friendly version of the name (e.g., "abaya", "qamis")',
+          'URL-friendly version of the name (e.g., "clothing", "accessories")',
       },
     },
     {

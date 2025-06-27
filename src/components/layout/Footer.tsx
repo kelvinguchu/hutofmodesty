@@ -21,25 +21,25 @@ export default function Footer() {
             <div className='flex space-x-4 pt-4'>
               <a
                 href='#'
-                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-purple-600 transition-all duration-200 rounded-lg hover:scale-110 transform'
+                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
                 aria-label='Facebook'>
                 <FaFacebook className='w-5 h-5' />
               </a>
               <a
                 href='#'
-                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-purple-600 transition-all duration-200 rounded-lg hover:scale-110 transform'
+                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
                 aria-label='Instagram'>
                 <FaInstagram className='w-5 h-5' />
               </a>
               <a
                 href='#'
-                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-purple-600 transition-all duration-200 rounded-lg hover:scale-110 transform'
+                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
                 aria-label='Twitter'>
                 <FaTwitter className='w-5 h-5' />
               </a>
               <a
                 href='mailto:info@hutofmodesty.com'
-                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-emerald-600 transition-all duration-200 rounded-lg hover:scale-110 transform'
+                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
                 aria-label='Email'>
                 <FaEnvelope className='w-5 h-5' />
               </a>
@@ -49,7 +49,7 @@ export default function Footer() {
           {/* Quick Links */}
           <div>
             <h3 className='text-lg font-bold mb-6 text-white flex items-center'>
-              <span className='w-1 h-6 bg-purple-500 rounded-full mr-3'></span>
+              <span className='w-1 h-6 bg-primary rounded-full mr-3'></span>
               Quick Links
             </h3>
             <ul className='space-y-3 text-sm'>
@@ -57,7 +57,7 @@ export default function Footer() {
                 <Link
                   href='/about'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-purple-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   About Us
                 </Link>
               </li>
@@ -65,7 +65,7 @@ export default function Footer() {
                 <Link
                   href='/contact'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-purple-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   Contact Us
                 </Link>
               </li>
@@ -73,7 +73,7 @@ export default function Footer() {
                 <Link
                   href='/faq'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-purple-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   FAQs
                 </Link>
               </li>
@@ -81,7 +81,7 @@ export default function Footer() {
                 <Link
                   href='/privacy-policy'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-purple-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   Privacy Policy
                 </Link>
               </li>
@@ -89,7 +89,7 @@ export default function Footer() {
                 <Link
                   href='/terms-conditions'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-purple-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   Terms & Conditions
                 </Link>
               </li>
@@ -99,48 +99,48 @@ export default function Footer() {
           {/* Collections */}
           <div>
             <h3 className='text-lg font-bold mb-6 text-white flex items-center'>
-              <span className='w-1 h-6 bg-emerald-500 rounded-full mr-3'></span>
+              <span className='w-1 h-6 bg-primary rounded-full mr-3'></span>
               Collections
             </h3>
             <ul className='space-y-3 text-sm'>
               <li>
                 <Link
-                  href='/collections/abaya'
+                  href='/collections/clothing'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-emerald-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  Clothing
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href='/collections/clothing/abayas'
+                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   Abayas
                 </Link>
               </li>
               <li>
                 <Link
-                  href='/collections/qamis'
+                  href='/collections/footwear'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-emerald-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  Qamis
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/collections/abaya/hijabs'
-                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-emerald-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  Hijabs
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  Footwear
                 </Link>
               </li>
               <li>
                 <Link
                   href='/collections/accessories'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-emerald-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
                   Accessories
                 </Link>
               </li>
               <li>
                 <Link
-                  href='/collections/new-arrivals'
+                  href='/collections/fragrances'
                   className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-emerald-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  New Arrivals
+                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
+                  Fragrances
                 </Link>
               </li>
             </ul>
@@ -149,19 +149,19 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h3 className='text-lg font-bold mb-6 text-white flex items-center'>
-              <span className='w-1 h-6 bg-purple-500 rounded-full mr-3'></span>
+              <span className='w-1 h-6 bg-primary rounded-full mr-3'></span>
               Contact Us
             </h3>
             <address className='text-sm text-gray-300 not-italic space-y-4'>
               <div className='flex items-start gap-3'>
-                <MapPin className='w-4 h-4 text-purple-400 mt-1 flex-shrink-0' />
+                <MapPin className='w-4 h-4 text-primary/80 mt-1 flex-shrink-0' />
                 <div>
                   <p>Nairobi, Kenya</p>
                 </div>
               </div>
 
               <div className='flex items-center gap-3'>
-                <Phone className='w-4 h-4 text-emerald-400 flex-shrink-0' />
+                <Phone className='w-4 h-4 text-primary/80 flex-shrink-0' />
                 <a
                   href='tel:+254700123456'
                   className='hover:text-white transition-colors duration-200 cursor-pointer'>
@@ -170,7 +170,7 @@ export default function Footer() {
               </div>
 
               <div className='flex items-center gap-3'>
-                <Mail className='w-4 h-4 text-purple-400 flex-shrink-0' />
+                <Mail className='w-4 h-4 text-primary/80 flex-shrink-0' />
                 <a
                   href='mailto:info@hutofmodesty.com'
                   className='hover:text-white transition-colors duration-200 cursor-pointer'>

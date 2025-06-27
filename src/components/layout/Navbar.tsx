@@ -11,24 +11,32 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { useCart } from "@/lib/cart/CartContext";
+import { useCartStore } from "@/lib/cart/cartStore";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
 import { WishlistSheet } from "@/components/wishlist/WishlistSheet";
 import { CartSheet } from "@/components/cart/CartSheet";
 import { UserButton } from "@/components/auth/UserButton";
+import { SearchDialog } from "@/components/search/SearchDialog";
 import MobileNav from "./MobileNav";
 import type { CategoryUI } from "@/types/navigation";
+import type { AuthUser } from "@/lib/auth/types";
 import Logo from "@/components/admin/Logo";
 
 interface NavbarProps {
   categories: CategoryUI[];
+  user: AuthUser | null;
+  isAuthenticated: boolean;
 }
 
-export default function Navbar({ categories }: Readonly<NavbarProps>) {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+export default function Navbar({
+  categories,
+  user,
+  isAuthenticated,
+}: Readonly<NavbarProps>) {
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const { itemCount } = useCart();
+  const { itemCount } = useCartStore();
   const wishlistCount = useWishlistStore((state) => state.itemCount);
 
   // Handle scroll effect for navbar
@@ -57,7 +65,11 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
     <>
       {/* Mobile Navigation */}
       <div className='md:hidden'>
-        <MobileNav categories={categories} />
+        <MobileNav
+          categories={categories}
+          user={user}
+          isAuthenticated={isAuthenticated}
+        />
       </div>
 
       {/* Desktop Navigation */}
@@ -72,21 +84,21 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
                 href='https://instagram.com'
                 target='_blank'
                 rel='noopener noreferrer'
-                className='hover:text-purple-400 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
+                className='hover:text-primary/80 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
                 <BiLogoInstagram className='h-4 w-4' />
               </a>
               <a
                 href='https://facebook.com'
                 target='_blank'
                 rel='noopener noreferrer'
-                className='hover:text-purple-400 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
+                className='hover:text-primary/80 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
                 <BiLogoFacebook className='h-4 w-4' />
               </a>
               <a
                 href='https://twitter.com'
                 target='_blank'
                 rel='noopener noreferrer'
-                className='hover:text-purple-400 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
+                className='hover:text-primary/80 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
                 <BiLogoTwitter className='h-4 w-4' />
               </a>
             </div>
@@ -111,7 +123,7 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
           <div className='flex items-center justify-between px-4 py-3'>
             {/* Logo */}
             <Link href='/' className='relative z-10 group cursor-pointer'>
-              <Logo />
+              <Logo width={80} height={70} />
             </Link>
 
             {/* Desktop Navigation */}
@@ -122,7 +134,7 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
               {categories.map((category) => (
                 <div key={category.id} className='relative group'>
                   <button
-                    className='flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 cursor-pointer'
+                    className='flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer'
                     onClick={() => toggleDropdown(category.slug)}>
                     <span>{category.name}</span>
                     <ChevronDown className='ml-2 h-4 w-4 transition-transform duration-200 group-hover:rotate-180' />
@@ -132,7 +144,7 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
                     <div className='p-2'>
                       <Link
                         href={`/collections/${category.slug}`}
-                        className='block px-4 py-3 text-sm font-semibold text-gray-900 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 border-b border-gray-100 mb-2 cursor-pointer'>
+                        className='block px-4 py-3 text-sm font-semibold text-gray-900 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 border-b border-gray-100 mb-2 cursor-pointer'>
                         All {category.name}
                       </Link>
 
@@ -142,7 +154,7 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
                           <Link
                             key={subcategory.id}
                             href={`/collections/${category.slug}/${subcategory.slug}`}
-                            className='block px-4 py-2 text-sm text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 cursor-pointer'>
+                            className='block px-4 py-2 text-sm text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer'>
                             {subcategory.name}
                           </Link>
                         ))
@@ -155,46 +167,26 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
                   </div>
                 </div>
               ))}
-
-              <NavItem href='/collections' label='New Arrivals' />
-              <NavItem href='/collections' label='Sale' />
             </nav>
 
             {/* Desktop Icons */}
             <div className='flex items-center space-x-2'>
               {/* Search */}
-              <div className='relative'>
-                <button
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className='p-2 text-gray-700 hover:text-purple-600 transition-all duration-200 rounded-lg hover:bg-purple-50 cursor-pointer'
-                  aria-label='Search'>
-                  <Search className='w-5 h-5 stroke-[1.5]' />
-                </button>
-
-                {isSearchOpen && (
-                  <div className='absolute right-0 top-full mt-3 w-80 bg-white shadow-xl rounded-xl border border-gray-100 p-4 z-50'>
-                    <div className='flex items-center gap-3'>
-                      <input
-                        type='text'
-                        placeholder='Search for products...'
-                        className='flex-1 p-3 bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm rounded-lg transition-all duration-200 placeholder-gray-500'
-                      />
-                      <button className='p-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md cursor-pointer'>
-                        <Search className='w-4 h-4' />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={() => setIsSearchDialogOpen(true)}
+                className='p-2 text-gray-700 hover:text-primary transition-all duration-200 rounded-lg hover:bg-primary/5 cursor-pointer'
+                aria-label='Search'>
+                <Search className='w-5 h-5 stroke-[1.5]' />
+              </button>
 
               {/* Wishlist */}
-              <WishlistSheet>
+              <WishlistSheet user={user} isAuthenticated={isAuthenticated}>
                 <button
-                  className='p-2 text-gray-700 hover:text-purple-600 transition-all duration-200 rounded-lg hover:bg-purple-50 relative cursor-pointer'
+                  className='p-2 text-gray-700 hover:text-primary transition-all duration-200 rounded-lg hover:bg-primary/5 relative cursor-pointer'
                   aria-label='Wishlist'>
                   <Heart className='w-5 h-5 stroke-[1.5]' />
                   {wishlistCount > 0 && (
-                    <span className='absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full text-[10px] font-bold shadow-md'>
+                    <span className='absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] font-bold shadow-md'>
                       {wishlistCount}
                     </span>
                   )}
@@ -202,16 +194,16 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
               </WishlistSheet>
 
               {/* User Account */}
-              <UserButton />
+              <UserButton user={user} isAuthenticated={isAuthenticated} />
 
               {/* Shopping Bag */}
-              <CartSheet>
+              <CartSheet user={user} isAuthenticated={isAuthenticated}>
                 <button
-                  className='p-2 text-gray-700 hover:text-purple-600 transition-all duration-200 rounded-lg hover:bg-purple-50 relative cursor-pointer'
+                  className='p-2 text-gray-700 hover:text-primary transition-all duration-200 rounded-lg hover:bg-primary/5 relative cursor-pointer'
                   aria-label='Shopping Cart'>
                   <ShoppingBag className='w-5 h-5 stroke-[1.5]' />
                   {itemCount > 0 && (
-                    <span className='absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-full text-[10px] font-bold shadow-md'>
+                    <span className='absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] font-bold shadow-md'>
                       {itemCount}
                     </span>
                   )}
@@ -220,6 +212,12 @@ export default function Navbar({ categories }: Readonly<NavbarProps>) {
             </div>
           </div>
         </div>
+
+        {/* Search Dialog */}
+        <SearchDialog
+          open={isSearchDialogOpen}
+          onOpenChange={setIsSearchDialogOpen}
+        />
       </header>
     </>
   );
@@ -236,35 +234,8 @@ function NavItem({
   return (
     <Link
       href={href}
-      className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 cursor-pointer'>
+      className='px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer'>
       {label}
-    </Link>
-  );
-}
-
-// IconButton component with optional badge
-function IconButton({
-  href,
-  icon,
-  label,
-  badge,
-}: Readonly<{
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  badge?: number;
-}>) {
-  return (
-    <Link
-      href={href}
-      className='p-3 text-gray-700 hover:text-purple-600 transition-all duration-200 rounded-lg hover:bg-purple-50 relative cursor-pointer'
-      aria-label={label}>
-      {icon}
-      {badge && (
-        <span className='absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full text-xs font-bold shadow-md'>
-          {badge}
-        </span>
-      )}
     </Link>
   );
 }

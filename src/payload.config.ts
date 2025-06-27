@@ -11,7 +11,10 @@ import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
 import { Categories } from "./collections/Categories";
 import { SubCategories } from "./collections/SubCategories";
-import { Products } from "./collections/Products";
+import { Clothing } from "./collections/Clothing";
+import { Footwear } from "./collections/Footwear";
+import { Fragrances } from "./collections/Fragrances";
+import { Accessories } from "./collections/Accessories";
 import Orders from "./collections/Orders";
 
 const filename = fileURLToPath(import.meta.url);
@@ -46,7 +49,17 @@ export default buildConfig({
     // Allow requests from the same origin
     process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
   ],
-  collections: [Users, Media, Categories, SubCategories, Products, Orders],
+  collections: [
+    Users,
+    Media,
+    Categories,
+    SubCategories,
+    Clothing,
+    Footwear,
+    Fragrances,
+    Accessories,
+    Orders,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? "",
   typescript: {

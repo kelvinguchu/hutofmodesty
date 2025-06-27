@@ -1,56 +1,54 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { getPayload } from "payload";
-import config from "@/payload.config";
-import type { PaginatedDocs } from "payload";
-import type {
-  Subcategory,
-  Product,
-  SubcategoriesSelect,
-  ProductsSelect,
-} from "@/payload-types";
+import type { Metadata } from "next";
+
+// Import optimized cached data fetching functions
+import {
+  getPayloadInstance,
+  findCategoryBySlug,
+  findProductsByCategory,
+} from "@/lib/products/actions";
+
 import CategoryDisplay from "@/components/collections/CategoryDisplay";
+
+// Static generation config - Enable ISR with 30 minute revalidation
+export const revalidate = 1800; // 30 minutes
+export const dynamicParams = true; // Generate new pages on-demand
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ category: string }>;
-}) {
+}): Promise<Metadata> {
   const { category } = await params;
 
   try {
-    // Initialize payload
-    const payload = await getPayload({ config });
+    const categoryDoc = await findCategoryBySlug(category);
 
-    // Fetch the category to get its name
-    const categoryData = await payload.find({
-      collection: "categories",
-      where: {
-        slug: {
-          equals: category,
-        },
-      },
-      limit: 1,
-    });
-
-    if (categoryData.docs.length === 0) {
+    if (!categoryDoc) {
       return {
-        title: "Not Found",
-        description: "Page not found",
+        title: "Category Not Found - Hut of Modesty",
+        description: "The requested category could not be found.",
       };
     }
 
-    const categoryName = categoryData.docs[0].name;
-
     return {
-      title: `${categoryName} Collection - Hut of Modesty`,
-      description: `Browse our premium ${categoryName.toLowerCase()} collection`,
+      title: `${categoryDoc.name} - Hut of Modesty`,
+      description:
+        categoryDoc.description ||
+        `Shop our ${categoryDoc.name} collection at Hut of Modesty. Premium quality products with fast shipping.`,
+      openGraph: {
+        title: `${categoryDoc.name} - Hut of Modesty`,
+        description:
+          categoryDoc.description || `Shop ${categoryDoc.name} collection`,
+        type: "website",
+      },
     };
   } catch (error) {
-    console.error("Error generating metadata:", error);
+    console.error("Error generating category metadata:", error);
     return {
-      title: "Collections - Hut of Modesty",
-      description: "Browse our collections",
+      title: "Shop by Category - Hut of Modesty",
+      description: "Browse our premium product collections",
     };
   }
 }
@@ -63,57 +61,50 @@ export default async function CategoryPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }>) {
   const { category } = await params;
-  const resolvedSearchParams = await searchParams;
+  const { sort = "newest" } = await searchParams;
 
-  // Get sort parameter or default to 'latest'
-  const sort =
-    typeof resolvedSearchParams.sort === "string"
-      ? resolvedSearchParams.sort
-      : "latest";
-
-  const payload = await getPayload({ config });
+  // Ensure sort is a string
+  const sortString = Array.isArray(sort) ? sort[0] : sort;
 
   try {
-    // Fetch the category
-    const categoryData = await payload.find({
-      collection: "categories",
-      where: {
-        slug: {
-          equals: category,
-        },
-      },
-      limit: 1,
-    });
+    // Use cached payload instance
+    const payload = await getPayloadInstance();
 
-    if (categoryData.docs.length === 0) {
+    // Find the category using cached function
+    const categoryDoc = await findCategoryBySlug(category);
+
+    if (!categoryDoc) {
       notFound();
     }
 
-    const categoryDoc = categoryData.docs[0];
-    const categoryId = categoryDoc.id;
+    // Collection mapping for efficient queries
+    const collectionMap: { [key: string]: string } = {
+      clothing: "clothing",
+      footwear: "footwear",
+      accessories: "accessories",
+      fragrances: "fragrances",
+    };
+
+    const collectionSlug = collectionMap[category];
+    if (!collectionSlug) {
+      notFound();
+    }
 
     // Fetch subcategories and products in parallel for better performance
     const [subcategoriesData, productsData] = await Promise.all([
-      payload.find<"subcategories", SubcategoriesSelect<true>>({
+      payload.find({
         collection: "subcategories",
         where: {
-          category: {
-            equals: categoryId,
-          },
+          category: { equals: categoryDoc.id },
         },
         sort: "displayOrder",
+        draft: false,
       }),
-      payload.find<"products", ProductsSelect<true>>({
-        collection: "products",
-        where: {
-          category: {
-            equals: categoryId,
-          },
-        },
+      findProductsByCategory(categoryDoc.id, collectionSlug, {
         sort:
-          sort === "price-desc"
+          sortString === "price-desc"
             ? "-price"
-            : sort === "price-asc"
+            : sortString === "price-asc"
               ? "price"
               : "-createdAt",
         limit: 12,
@@ -126,7 +117,7 @@ export default async function CategoryPage({
         subcategories={subcategoriesData.docs}
         products={productsData.docs}
         totalProducts={productsData.totalDocs}
-        currentSort={sort}
+        currentSort={sortString}
       />
     );
   } catch (error) {

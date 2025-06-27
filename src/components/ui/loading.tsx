@@ -18,7 +18,7 @@ export function Loading({
         {/* Elegant spinner */}
         <div className='mb-4 relative'>
           <div className='w-12 h-12 border-3 border-gray-200 rounded-full mx-auto'></div>
-          <div className='absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-12 border-3 border-transparent border-t-purple-600 rounded-full animate-spin'></div>
+          <div className='absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-12 border-3 border-transparent border-t-primary rounded-full animate-spin'></div>
         </div>
 
         {/* Loading text */}
@@ -37,9 +37,9 @@ export function InlineLoading({
   return (
     <div className='flex items-center justify-center py-8'>
       <div className='text-center'>
-        <div className='mb-3'>
+        <div className='mb-3 relative'>
           <div className='w-8 h-8 border-2 border-gray-200 rounded-full mx-auto'></div>
-          <div className='absolute w-8 h-8 border-2 border-transparent border-t-purple-600 rounded-full animate-spin'></div>
+          <div className='absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-8 border-2 border-transparent border-t-primary rounded-full animate-spin'></div>
         </div>
         <p className='text-[#382f21] text-sm font-medium'>{message}</p>
       </div>

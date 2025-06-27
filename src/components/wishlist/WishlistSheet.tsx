@@ -13,8 +13,8 @@ import {
   User,
 } from "lucide-react";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
-import { useCart } from "@/lib/cart/CartContext";
-import { useAuth } from "@/lib/auth/AuthContext";
+import { useCartStore } from "@/lib/cart/cartStore";
+import { useUserDataSync } from "@/hooks/useAuthSync";
 import {
   Sheet,
   SheetContent,
@@ -23,21 +23,26 @@ import {
   SheetFooter,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { AuthUser } from "@/lib/auth/types";
 
 interface WishlistSheetProps {
   children: React.ReactNode;
+  user?: AuthUser | null;
+  isAuthenticated?: boolean;
 }
 
-export function WishlistSheet({ children }: WishlistSheetProps) {
+export function WishlistSheet({
+  children,
+  user,
+  isAuthenticated,
+}: WishlistSheetProps) {
   const { items, removeItem, clearWishlist } = useWishlistStore();
-  const { items: cartItems, addItem: addToCart } = useCart();
-  const { user } = useAuth();
+  const { isInCart, addItem: addToCart } = useCartStore();
+  const { clearWishlistData } = useUserDataSync();
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   // Check if an item is already in the cart
-  const isInCart = (itemId: string) => {
-    return cartItems.some((cartItem) => cartItem.id === itemId);
-  };
+  // isInCart function is now available directly from useCartStore
 
   const handleAddToCart = (item: any) => {
     // Only add if not already in cart
@@ -60,6 +65,16 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
     }
   };
 
+  const handleClearWishlist = async () => {
+    if (isAuthenticated && user) {
+      // Clear both local and server wishlist data for authenticated users
+      await clearWishlistData();
+    } else {
+      // Clear only local wishlist data for guest users
+      clearWishlist();
+    }
+  };
+
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -69,12 +84,12 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
         <SheetHeader className='border-b border-gray-100 py-4 px-6 bg-gradient-to-r from-gray-50 to-white'>
           <div className='flex items-center justify-between'>
             <SheetTitle className='text-xl font-bold text-gray-900 flex items-center gap-3'>
-              <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center'>
-                <Heart className='w-4 h-4 text-white' />
+              <div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center'>
+                <Heart className='w-4 h-4 text-primary-foreground' />
               </div>
               My Wishlist
               {items.length > 0 && (
-                <span className='bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full'>
+                <span className='bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full'>
                   {items.length}
                 </span>
               )}
@@ -119,7 +134,7 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
                         <h3 className='text-sm font-semibold text-gray-900 line-clamp-2 mb-1'>
                           <Link
                             href={`/products/${item.id}`}
-                            className='hover:text-purple-600 transition-colors cursor-pointer'>
+                            className='hover:text-primary transition-colors cursor-pointer'>
                             {item.name}
                           </Link>
                         </h3>
@@ -145,7 +160,7 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
                                 ? "bg-green-500 text-white shadow-md"
                                 : isInCart(item.id)
                                   ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                                  : "bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg"
+                                  : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg"
                             }`}>
                             {addedItems[item.id] ? (
                               <>
@@ -182,11 +197,11 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
 
         {items.length > 0 && (
           <div className='border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white p-6'>
-            {!user && (
-              <div className='bg-purple-50 rounded-xl border border-purple-100 p-4 mb-4'>
+            {!isAuthenticated && (
+              <div className='bg-primary/5 rounded-xl border border-primary/10 p-4 mb-4'>
                 <div className='flex items-center gap-3'>
-                  <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0'>
-                    <User className='w-4 h-4 text-white' />
+                  <div className='w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0'>
+                    <User className='w-4 h-4 text-primary-foreground' />
                   </div>
                   <div>
                     <p className='text-sm font-medium text-gray-900 mb-1'>
@@ -194,7 +209,7 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
                     </p>
                     <Link
                       href='/login'
-                      className='text-sm text-purple-600 hover:text-purple-700 font-medium cursor-pointer'>
+                      className='text-sm text-primary hover:text-primary/80 font-medium cursor-pointer'>
                       Sign in now →
                     </Link>
                   </div>
@@ -202,7 +217,7 @@ export function WishlistSheet({ children }: WishlistSheetProps) {
               </div>
             )}
             <button
-              onClick={clearWishlist}
+              onClick={handleClearWishlist}
               className='w-full bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold text-sm uppercase tracking-wider text-center transition-all duration-200 flex items-center justify-center gap-2 py-3 px-4 shadow-md hover:shadow-lg cursor-pointer'>
               <X className='w-4 h-4' />
               Clear Wishlist

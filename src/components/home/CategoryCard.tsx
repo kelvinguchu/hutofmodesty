@@ -1,8 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Crown, Sparkles } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Category as PayloadCategory } from "@/payload-types";
+import { normalizeMediaURL } from "@/lib/utils";
 
 export type CategoryCardData = PayloadCategory;
 
@@ -14,7 +15,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   // Handle image source
   const imageUrl =
     typeof category.image === "object" && category.image?.url
-      ? category.image.url
+      ? (normalizeMediaURL(category.image.url) ?? "/images/placeholder.jpg")
       : "/images/placeholder.jpg";
 
   const linkUrl = `/collections/${category.slug}`;

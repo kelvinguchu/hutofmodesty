@@ -6,12 +6,27 @@ import { ArrowRight, Zap, Shield, Truck } from "lucide-react";
 
 import config from "@/payload.config";
 import type { PaginatedDocs } from "payload";
-import type { Category, Product } from "@/payload-types";
+import type {
+  Category,
+  Clothing,
+  Footwear,
+  Fragrance,
+  Accessory,
+} from "@/payload-types";
+
+// Union type for all product types
+type Product = Clothing | Footwear | Fragrance | Accessory;
 import Hero from "@/components/home/Hero";
 import SectionTitle from "@/components/home/SectionTitle";
 import ProductCard from "@/components/home/ProductCard";
 import CategoryCard, { CategoryCardData } from "@/components/home/CategoryCard";
 import FAQ from "@/components/home/FAQ";
+
+// Import optimized cached data fetching functions
+import { getPayloadInstance } from "@/lib/products/actions";
+
+// Static generation with ISR - revalidate every 30 minutes for fresh content
+export const revalidate = 1800; 
 
 // Static data for FAQs
 const faqData = [
@@ -42,57 +57,9 @@ const faqData = [
   },
 ];
 
-// Fallback component when no products are available
-interface EmptyProductsSectionProps {
-  collectionType: string;
-  collectionName: string;
-}
-
-const EmptyProductsSection: React.FC<EmptyProductsSectionProps> = ({
-  collectionType,
-  collectionName,
-}) => {
-  // Map collection types to their correct image paths
-  const getImagePath = (type: string) => {
-    switch (type) {
-      case "abayas":
-        return "/abayas/abaya2.webp";
-      case "qamis":
-        return "/qamis/qamis2.webp";
-      default:
-        return "/abayas/abaya.webp";
-    }
-  };
-
-  return (
-    <div className='bg-black text-white p-12 text-center'>
-      <div className='mb-6 relative h-[200px] w-[200px] mx-auto'>
-        <Image
-          src={getImagePath(collectionType)}
-          alt={`${collectionName} Image`}
-          fill
-          sizes='200px'
-          className='object-cover grayscale'
-        />
-      </div>
-      <h3 className='text-2xl font-black uppercase mb-4'>
-        {collectionName} Coming Soon
-      </h3>
-      <p className='text-gray-400 mb-6 text-base'>
-        We're crafting something extraordinary. Stay tuned.
-      </p>
-      <Link
-        href={`/collections/${collectionType}`}
-        className='inline-flex items-center px-6 py-3 bg-white text-black font-medium uppercase tracking-wider hover:bg-gray-200 transition-colors'>
-        Notify Me <ArrowRight className='ml-2 w-4 h-4' />
-      </Link>
-    </div>
-  );
-};
-
 export default async function HomePage() {
-  const payloadConfig = await config;
-  const payload = await getPayload({ config: payloadConfig });
+  // Use cached payload instance
+  const payload = await getPayloadInstance();
 
   // Initialize with empty data in case of errors (typed as PaginatedDocs<...>)
   let featuredCategories: PaginatedDocs<Category> = {
@@ -108,20 +75,7 @@ export default async function HomePage() {
     nextPage: null,
   };
 
-  let trendingAbayas: PaginatedDocs<Product> = {
-    docs: [],
-    totalDocs: 0,
-    limit: 0,
-    page: 1,
-    pagingCounter: 0,
-    totalPages: 0,
-    hasPrevPage: false,
-    hasNextPage: false,
-    prevPage: null,
-    nextPage: null,
-  };
-
-  let trendingQamis: PaginatedDocs<Product> = {
+  let allTrendingProducts: PaginatedDocs<Product> = {
     docs: [],
     totalDocs: 0,
     limit: 0,
@@ -150,72 +104,141 @@ export default async function HomePage() {
   }
 
   try {
-    // Fetch trending Abayas
-    trendingAbayas = await payload.find({
-      collection: "products",
-      where: {
-        and: [
-          {
-            "category.slug": {
-              equals: "abaya",
-            },
-          },
-          {
-            trending: {
-              equals: true,
-            },
-          },
-          {
-            status: {
-              equals: "active",
-            },
-          },
-        ],
-      },
-      limit: 8,
-      depth: 1,
-    });
-  } catch (error) {
-    console.error("Error fetching abayas:", error);
-  }
+    // Fetch trending products from all collections - original approach but with cached payload
+    const [
+      clothingTrending,
+      footwearTrending,
+      fragrancesTrending,
+      accessoriesTrending,
+    ] = await Promise.all([
+      payload.find({
+        collection: "clothing",
+        where: {
+          and: [
+            { trending: { equals: true } },
+            { status: { equals: "active" } },
+          ],
+        },
+        limit: 12,
+        depth: 2,
+        sort: "-createdAt",
+      }),
+      payload.find({
+        collection: "footwear",
+        where: {
+          and: [
+            { trending: { equals: true } },
+            { status: { equals: "active" } },
+          ],
+        },
+        limit: 12,
+        depth: 2,
+        sort: "-createdAt",
+      }),
+      payload.find({
+        collection: "fragrances",
+        where: {
+          and: [
+            { trending: { equals: true } },
+            { status: { equals: "active" } },
+          ],
+        },
+        limit: 12,
+        depth: 2,
+        sort: "-createdAt",
+      }),
+      payload.find({
+        collection: "accessories",
+        where: {
+          and: [
+            { trending: { equals: true } },
+            { status: { equals: "active" } },
+          ],
+        },
+        limit: 12,
+        depth: 2,
+        sort: "-createdAt",
+      }),
+    ]);
 
-  try {
-    // Fetch trending Qamis
-    trendingQamis = await payload.find({
-      collection: "products",
-      where: {
-        and: [
-          {
-            "category.slug": {
-              equals: "qamis",
-            },
-          },
-          {
-            trending: {
-              equals: true,
-            },
-          },
-          {
-            status: {
-              equals: "active",
-            },
-          },
-        ],
-      },
-      limit: 8,
-      depth: 1,
-    });
+    // Combine all trending products
+    const allTrendingDocs = [
+      ...clothingTrending.docs,
+      ...footwearTrending.docs,
+      ...fragrancesTrending.docs,
+      ...accessoriesTrending.docs,
+    ];
+
+    // Create a mock PaginatedDocs structure for compatibility
+    allTrendingProducts = {
+      docs: allTrendingDocs,
+      totalDocs: allTrendingDocs.length,
+      limit: 50,
+      page: 1,
+      pagingCounter: 0,
+      totalPages: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null,
+    };
   } catch (error) {
-    console.error("Error fetching qamis:", error);
+    console.error("Error fetching trending products:", error);
   }
 
   const categoriesToDisplay: CategoryCardData[] = [
     ...(featuredCategories.docs as CategoryCardData[]),
   ];
 
-  // Use CMS data directly without static fallbacks for products
-  const abayasToDisplay = trendingAbayas.docs;
-  const qamisToDisplay = trendingQamis.docs;
+  // Group trending products by main category
+  const productsByCategory = new Map<string, Product[]>();
+
+  allTrendingProducts.docs.forEach((product) => {
+    if (product.category && typeof product.category === "object") {
+      const categorySlug = product.category.slug;
+      if (!productsByCategory.has(categorySlug)) {
+        productsByCategory.set(categorySlug, []);
+      }
+      productsByCategory.get(categorySlug)!.push(product);
+    }
+  });
+
+  // Configuration for each major category section - original design with proper accents
+  const categoryConfig = {
+    clothing: {
+      title: "Trending Clothing",
+      subtitle: "Featured Collection",
+      accent: "purple" as const,
+      link: "/collections/clothing",
+      linkText: "View All Clothing",
+    },
+    footwear: {
+      title: "Trending Footwear",
+      subtitle: "Step in Style",
+      accent: "emerald" as const,
+      link: "/collections/footwear",
+      linkText: "View All Footwear",
+    },
+    accessories: {
+      title: "Trending Accessories",
+      subtitle: "Complete Your Look",
+      accent: "purple" as const,
+      link: "/collections/accessories",
+      linkText: "View All Accessories",
+    },
+    fragrances: {
+      title: "Trending Fragrances",
+      subtitle: "Signature Scents",
+      accent: "emerald" as const,
+      link: "/collections/fragrances",
+      linkText: "View All Fragrances",
+    },
+  };
+
+  // Only get categories that have trending products
+  const trendingCategories = Array.from(productsByCategory.keys())
+    .filter((slug) => categoryConfig[slug as keyof typeof categoryConfig])
+    .slice(0, 4); // All 4 major categories if they have products
 
   return (
     <div className='bg-white'>
@@ -227,7 +250,7 @@ export default async function HomePage() {
       {/* Categories Section - Optimized for 2 categories */}
       <section className='py-0'>
         <div className='grid grid-cols-1 lg:grid-cols-2'>
-          {categoriesToDisplay.map((category) => (
+          {featuredCategories.docs.map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}
         </div>
@@ -237,8 +260,8 @@ export default async function HomePage() {
       <section className='py-16 sm:py-18 md:py-20 bg-black text-white text-center'>
         <div className='container mx-auto px-4 sm:px-6 max-w-4xl'>
           <h2 className='text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-4 sm:mb-6 leading-tight px-2'>
-            Crafting <span className='text-purple-400'>elegance</span> with a
-            touch of modesty
+            Crafting <span className='text-primary'>elegance</span> with a touch
+            of modesty
           </h2>
           <p className='text-base sm:text-lg md:text-xl text-gray-400 leading-relaxed px-4 sm:px-0'>
             Where contemporary design meets traditional values. Every piece is
@@ -247,52 +270,51 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trending Abayas Section */}
-      <section className='py-12 sm:py-14 md:py-16 bg-white'>
-        <div className='container mx-auto px-4 sm:px-6'>
-          <SectionTitle
-            title='Trending Abayas'
-            subtitle='Featured Collection'
-            accent='purple'
-          />
+      {/* Dynamic Trending Product Sections - using mono color scheme */}
+      {trendingCategories.map((categorySlug) => {
+        const config =
+          categoryConfig[categorySlug as keyof typeof categoryConfig];
+        const products = productsByCategory.get(categorySlug) || [];
 
-          {abayasToDisplay.length > 0 ? (
-            <>
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-10 sm:mb-12'>
-                {abayasToDisplay.map((product) => (
+        return (
+          <section key={categorySlug} className='py-4 sm:py-6 md:py-6 bg-white'>
+            <div className='container mx-auto px-4 sm:px-6'>
+              <SectionTitle
+                title={config.title}
+                subtitle={config.subtitle}
+                accent={config.accent}
+              />
+
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-10'>
+                {products.slice(0, 8).map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
-                    accent='purple'
+                    accent={config.accent}
                   />
                 ))}
               </div>
 
               <div className='text-center px-4'>
                 <Link
-                  href='/collections/abaya'
-                  className='inline-flex items-center gap-2 text-sm font-semibold text-purple-500 hover:text-purple-600 active:text-purple-700 transition-all duration-200 px-5 sm:px-6 py-3 border border-purple-500/20 hover:border-purple-500/40 active:border-purple-500/60 rounded-lg hover:bg-purple-50 active:bg-purple-100 cursor-pointer group touch-manipulation focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2'>
-                  View All Abayas
+                  href={config.link}
+                  className='inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 active:text-primary/70 transition-all duration-200 px-5 sm:px-6 py-3 border border-primary/20 hover:border-primary/40 active:border-primary/60 rounded-lg hover:bg-primary/5 active:bg-primary/10 cursor-pointer group touch-manipulation focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'>
+                  {config.linkText}
                   <ArrowRight className='w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-active:translate-x-1' />
                 </Link>
               </div>
-            </>
-          ) : (
-            <EmptyProductsSection
-              collectionType='abayas'
-              collectionName='Abayas'
-            />
-          )}
-        </div>
-      </section>
+            </div>
+          </section>
+        );
+      })}
 
       {/* Values Section */}
       <section className='hidden md:block py-12 sm:py-14 md:py-16 bg-gray-50'>
         <div className='container mx-auto px-4 sm:px-6'>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-8'>
             <div className='text-center space-y-3 sm:space-y-4 px-2'>
-              <div className='w-11 h-11 sm:w-12 sm:h-12 bg-emerald-500 flex items-center justify-center mx-auto'>
-                <Zap className='w-5 h-5 sm:w-6 sm:h-6 text-white' />
+              <div className='w-11 h-11 sm:w-12 sm:h-12 bg-accent flex items-center justify-center mx-auto'>
+                <Zap className='w-5 h-5 sm:w-6 sm:h-6 text-accent-foreground' />
               </div>
               <h3 className='text-lg sm:text-xl font-bold uppercase tracking-wide'>
                 Premium Quality
@@ -304,8 +326,8 @@ export default async function HomePage() {
             </div>
 
             <div className='text-center space-y-3 sm:space-y-4 px-2'>
-              <div className='w-11 h-11 sm:w-12 sm:h-12 bg-purple-500 flex items-center justify-center mx-auto'>
-                <Shield className='w-5 h-5 sm:w-6 sm:h-6 text-white' />
+              <div className='w-11 h-11 sm:w-12 sm:h-12 bg-primary flex items-center justify-center mx-auto'>
+                <Shield className='w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground' />
               </div>
               <h3 className='text-lg sm:text-xl font-bold uppercase tracking-wide'>
                 Authentic Design
@@ -317,8 +339,8 @@ export default async function HomePage() {
             </div>
 
             <div className='text-center space-y-3 sm:space-y-4 px-2'>
-              <div className='w-11 h-11 sm:w-12 sm:h-12 bg-black flex items-center justify-center mx-auto'>
-                <Truck className='w-5 h-5 sm:w-6 sm:h-6 text-white' />
+              <div className='w-11 h-11 sm:w-12 sm:h-12 bg-secondary flex items-center justify-center mx-auto'>
+                <Truck className='w-5 h-5 sm:w-6 sm:h-6 text-secondary-foreground' />
               </div>
               <h3 className='text-lg sm:text-xl font-bold uppercase tracking-wide'>
                 Global Delivery
@@ -329,45 +351,6 @@ export default async function HomePage() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Trending Qamis Section */}
-      <section className='py-12 sm:py-14 md:py-16 bg-white'>
-        <div className='container mx-auto px-4 sm:px-6'>
-          <SectionTitle
-            title='Trending Qamis'
-            subtitle='Handcrafted Excellence'
-            accent='emerald'
-          />
-
-          {qamisToDisplay.length > 0 ? (
-            <>
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-10 sm:mb-12'>
-                {qamisToDisplay.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    accent='emerald'
-                  />
-                ))}
-              </div>
-
-              <div className='text-center px-4'>
-                <Link
-                  href='/collections/qamis'
-                  className='inline-flex items-center gap-2 text-sm font-semibold text-emerald-500 hover:text-emerald-600 active:text-emerald-700 transition-all duration-200 px-5 sm:px-6 py-3 border border-emerald-500/20 hover:border-emerald-500/40 active:border-emerald-500/60 rounded-lg hover:bg-emerald-50 active:bg-emerald-100 cursor-pointer group touch-manipulation focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2'>
-                  View All Qamis
-                  <ArrowRight className='w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-active:translate-x-1' />
-                </Link>
-              </div>
-            </>
-          ) : (
-            <EmptyProductsSection
-              collectionType='qamis'
-              collectionName='Qamis'
-            />
-          )}
         </div>
       </section>
 

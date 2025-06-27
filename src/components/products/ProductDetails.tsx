@@ -1,8 +1,23 @@
 import React, { useState } from "react";
-import { Heart, ShoppingCart, Check, Palette, Ruler, User } from "lucide-react";
-import { useCart } from "@/lib/cart/CartContext";
+import {
+  Heart,
+  ShoppingCart,
+  Check,
+  Palette,
+  Ruler,
+  User,
+  Shirt,
+  Droplets,
+  Clock,
+  Users,
+} from "lucide-react";
+import { useCartStore } from "@/lib/cart/cartStore";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
 import { CartSheet } from "@/components/cart/CartSheet";
+import type { Clothing, Footwear, Fragrance, Accessory } from "@/payload-types";
+
+// Union type for all product types
+type Product = Clothing | Footwear | Fragrance | Accessory;
 
 interface RichTextNode {
   children?: Array<{
@@ -50,16 +65,7 @@ interface ConfettiEmoji {
 }
 
 interface ProductDetailsProps {
-  id: string;
-  name: string;
-  price: number;
-  description: string | RichText;
-  mainImage?: { url: string } | null;
-  color?: string;
-  colorCode?: string;
-  colorVariations?: ColorVariation[];
-  sizeVariations?: SizeVariation[];
-  heightRanges?: HeightRange[];
+  product: Product; // Pass the entire product to handle different types
   onColorSelect?: (
     colorVariation: ColorVariation | { color: string; colorCode: string }
   ) => void;
@@ -75,19 +81,44 @@ const ALL_SIZE_OPTIONS = [
 ];
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({
-  id,
-  name,
-  price,
-  description,
-  mainImage,
-  color = "",
-  colorCode = "",
-  colorVariations = [],
-  sizeVariations = [],
-  heightRanges = [],
+  product,
   onColorSelect,
 }) => {
-  const { addItem: addToCart, items: cartItems } = useCart();
+  // Extract common properties
+  const { id, name, price, description, mainImage } = product;
+
+  // Type-specific property extraction with type guards
+  const color = ("color" in product ? product.color : "") || "";
+  const colorCode = ("colorCode" in product ? product.colorCode : "") || "";
+  const colorVariations =
+    "colorVariations" in product ? product.colorVariations || [] : [];
+  const sizeVariations =
+    "sizeVariations" in product ? product.sizeVariations || [] : [];
+  const heightRanges =
+    "heightRanges" in product ? product.heightRanges || [] : [];
+
+  // Footwear-specific properties
+  const sizeFrom = "sizeFrom" in product ? product.sizeFrom : undefined;
+  const sizeTo = "sizeTo" in product ? product.sizeTo : undefined;
+  const shoeType = "shoeType" in product ? product.shoeType : undefined;
+
+  // Fragrance-specific properties
+  const volume = "volume" in product ? product.volume : undefined;
+  const volumeUnit = "volumeUnit" in product ? product.volumeUnit : undefined;
+  const longevity = "longevity" in product ? product.longevity : undefined;
+  const targetGender =
+    "targetGender" in product ? product.targetGender : undefined;
+  const occasion = "occasion" in product ? product.occasion : undefined;
+
+  // Accessory-specific properties
+  const accessoryType =
+    "accessoryType" in product ? product.accessoryType : undefined;
+  const availableSizes =
+    "availableSizes" in product ? product.availableSizes || [] : [];
+  const jewelryType =
+    "jewelryType" in product ? product.jewelryType : undefined;
+  const metalType = "metalType" in product ? product.metalType : undefined;
+  const { addItem: addToCart, isInCart } = useCartStore();
   const {
     addItem: addToWishlist,
     removeItem: removeFromWishlist,
@@ -99,14 +130,22 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const allColorOptions =
     color && colorCode
       ? [
-          { color, colorCode, isMain: true, image: mainImage },
+          {
+            color,
+            colorCode,
+            isMain: true,
+            image:
+              typeof mainImage === "object" && mainImage?.url
+                ? { url: mainImage.url }
+                : undefined,
+          },
           ...colorVariations.map((v) => ({ ...v, isMain: false })),
         ]
       : colorVariations.map((v) => ({ ...v, isMain: false }));
 
   // State for selected options
   const [selectedColor, setSelectedColor] = useState<string | null>(
-    allColorOptions.length > 0 ? allColorOptions[0]?.colorCode : null
+    allColorOptions.length > 0 ? allColorOptions[0]?.colorCode || null : null
   );
   const [selectedSize, setSelectedSize] = useState<string | null>(
     sizeVariations.length > 0 ? sizeVariations[0]?.size : null
@@ -117,7 +156,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
   // State for button confirmations
   const [isAddedToCart, setIsAddedToCart] = useState(false);
-  const isProductInCart = cartItems.some((item) => item.id === id);
+  const isProductInCart = isInCart(id);
   const isProductInWishlist = isInWishlist(id);
 
   // Emoji confetti states
@@ -129,7 +168,26 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     const selectedColorOption = allColorOptions.find(
       (v) => v.colorCode === selectedColor
     );
-    return selectedColorOption?.image?.url || mainImage?.url || undefined;
+
+    // Extract URL from selectedColorOption.image (handle different types)
+    let selectedImageUrl: string | undefined;
+    if (selectedColorOption?.image) {
+      if (typeof selectedColorOption.image === "string") {
+        selectedImageUrl = selectedColorOption.image;
+      } else if (
+        typeof selectedColorOption.image === "object" &&
+        "url" in selectedColorOption.image &&
+        selectedColorOption.image.url
+      ) {
+        selectedImageUrl = selectedColorOption.image.url;
+      }
+    }
+
+    const mainImageUrl =
+      typeof mainImage === "object" && mainImage?.url
+        ? mainImage.url
+        : undefined;
+    return selectedImageUrl || mainImageUrl || undefined;
   };
 
   // Format description for display
@@ -243,7 +301,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
           {name}
         </h1>
         <div className='flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-3'>
-          <p className='text-xl sm:text-2xl font-bold text-purple-600'>
+          <p className='text-xl sm:text-2xl font-bold text-primary'>
             ${typeof price === "number" ? price.toFixed(2) : "0.00"}
           </p>
           <span className='inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 w-fit'>
@@ -255,7 +313,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       {/* Description */}
       <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
         <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2'>
-          <div className='w-2 h-2 bg-purple-500 rounded-full'></div>
+          <div className='w-2 h-2 bg-primary rounded-full'></div>
           Product Description
         </h3>
         <p className='text-sm sm:text-base text-gray-600 leading-relaxed'>
@@ -267,7 +325,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       {allColorOptions.length > 0 && (
         <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
           <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2'>
-            <Palette className='w-4 h-4 sm:w-5 sm:h-5 text-purple-600' />
+            <Palette className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
             Color
           </h3>
           <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4'>
@@ -277,10 +335,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                   key={colorOption.colorCode}
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all duration-200 touch-manipulation ${
                     selectedColor === colorOption.colorCode
-                      ? "border-purple-500 ring-2 ring-purple-200 scale-110"
-                      : "border-gray-300 hover:border-purple-400 hover:scale-105 active:scale-95"
-                  } ${colorOption.isMain ? "ring-1 ring-gray-400" : ""} focus:outline-none focus:ring-2 focus:ring-purple-500`}
-                  style={{ backgroundColor: colorOption.colorCode }}
+                      ? "border-primary ring-2 ring-primary/20 scale-110"
+                      : "border-gray-300 hover:border-primary/60 hover:scale-105 active:scale-95"
+                  } ${colorOption.isMain ? "ring-1 ring-gray-400" : ""} focus:outline-none focus:ring-2 focus:ring-primary`}
+                  style={{ backgroundColor: colorOption.colorCode || "#gray" }}
                   aria-label={`Select ${colorOption.color} color`}
                   onClick={() => handleColorSelect(colorOption)}
                 />
@@ -304,7 +362,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       {sizeVariations.length > 0 && (
         <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
           <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2'>
-            <User className='w-4 h-4 sm:w-5 sm:h-5 text-purple-600' />
+            <User className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
             Size
           </h3>
           <div className='grid grid-cols-5 gap-2 sm:gap-3'>
@@ -319,9 +377,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                   key={sizeOption.value}
                   className={`py-2 sm:py-3 px-2 sm:px-4 border-2 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm touch-manipulation ${
                     selectedSize === sizeOption.value
-                      ? "border-purple-500 bg-purple-500 text-white shadow-lg scale-105"
+                      ? "border-primary bg-primary text-primary-foreground shadow-lg scale-105"
                       : isAvailable
-                        ? "border-gray-300 hover:border-purple-400 hover:bg-purple-50 text-gray-700 active:scale-95"
+                        ? "border-gray-300 hover:border-primary/60 hover:bg-primary/5 text-gray-700 active:scale-95"
                         : "border-gray-200 text-gray-400 line-through cursor-not-allowed bg-gray-50"
                   }`}
                   disabled={!isAvailable}
@@ -336,11 +394,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         </div>
       )}
 
-      {/* Height Range */}
+      {/* Height Range - Only for Clothing */}
       {heightRanges.length > 0 && (
         <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
           <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2'>
-            <Ruler className='w-4 h-4 sm:w-5 sm:h-5 text-purple-600' />
+            <Ruler className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
             Height Range
           </h3>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3'>
@@ -349,8 +407,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 key={range.label}
                 className={`py-3 sm:py-4 px-3 sm:px-4 border-2 rounded-lg font-medium transition-all duration-200 text-center touch-manipulation ${
                   selectedHeight === range.label
-                    ? "border-purple-500 bg-purple-500 text-white shadow-lg"
-                    : "border-gray-300 hover:border-purple-400 hover:bg-purple-50 text-gray-700 active:scale-95"
+                    ? "border-primary bg-primary text-primary-foreground shadow-lg"
+                    : "border-gray-300 hover:border-primary/60 hover:bg-primary/5 text-gray-700 active:scale-95"
                 }`}
                 onClick={() => handleHeightSelect(range.label)}>
                 <div className='font-semibold text-sm sm:text-base'>
@@ -365,12 +423,120 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         </div>
       )}
 
+      {/* Footwear Size Range */}
+      {sizeFrom !== undefined && sizeTo !== undefined && (
+        <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
+          <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2'>
+            <Shirt className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
+            Shoe Sizes Available
+          </h3>
+          <div className='bg-gray-50 rounded-lg p-4'>
+            <p className='text-center font-semibold text-gray-900'>
+              {sizeFrom === sizeTo
+                ? `Size ${sizeFrom}`
+                : `Sizes ${sizeFrom} - ${sizeTo}`}
+            </p>
+            {shoeType && (
+              <p className='text-center text-sm text-gray-600 mt-2'>
+                Type: {shoeType}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Fragrance Details */}
+      {volume !== undefined && (
+        <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
+          <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2'>
+            <Droplets className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
+            Fragrance Details
+          </h3>
+          <div className='space-y-3'>
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Volume:</span>
+              <span className='font-semibold'>
+                {volume} {volumeUnit || "ml"}
+              </span>
+            </div>
+            {longevity && (
+              <div className='flex justify-between items-center'>
+                <span className='text-gray-600'>Longevity:</span>
+                <span className='font-semibold capitalize'>
+                  {longevity.replace("-", " ")}
+                </span>
+              </div>
+            )}
+            {targetGender && (
+              <div className='flex justify-between items-center'>
+                <span className='text-gray-600'>For:</span>
+                <span className='font-semibold capitalize'>{targetGender}</span>
+              </div>
+            )}
+            {occasion && (
+              <div className='flex justify-between items-center'>
+                <span className='text-gray-600'>Best For:</span>
+                <span className='font-semibold capitalize'>
+                  {occasion.replace("-", " ")}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Accessory Details */}
+      {accessoryType && (
+        <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
+          <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2'>
+            <Users className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
+            Accessory Details
+          </h3>
+          <div className='space-y-3'>
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Type:</span>
+              <span className='font-semibold capitalize'>{accessoryType}</span>
+            </div>
+            {availableSizes.length > 0 && (
+              <div>
+                <span className='text-gray-600 block mb-2'>
+                  Available Sizes:
+                </span>
+                <div className='flex gap-2 flex-wrap'>
+                  {availableSizes.map((size) => (
+                    <span
+                      key={size}
+                      className='px-3 py-1 bg-gray-100 rounded-md text-sm font-medium'>
+                      {size}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {jewelryType && (
+              <div className='flex justify-between items-center'>
+                <span className='text-gray-600'>Jewelry Type:</span>
+                <span className='font-semibold capitalize'>{jewelryType}</span>
+              </div>
+            )}
+            {metalType && (
+              <div className='flex justify-between items-center'>
+                <span className='text-gray-600'>Metal:</span>
+                <span className='font-semibold capitalize'>
+                  {metalType.replace("-", " ")}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className='bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100'>
         <div className='flex gap-3 sm:gap-4 relative'>
           {isProductInCart ? (
             <CartSheet>
-              <button className='flex-1 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation'>
+              <button className='flex-1 bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground py-3 sm:py-4 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation'>
                 <ShoppingCart className='w-4 h-4 sm:w-5 sm:h-5' />
                 <span>View Cart</span>
               </button>
@@ -380,7 +546,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
               className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation ${
                 isAddedToCart
                   ? "bg-green-600 hover:bg-green-700 active:bg-green-800 text-white"
-                  : "bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white"
+                  : "bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground"
               }`}
               onClick={handleAddToCart}>
               {isAddedToCart ? (

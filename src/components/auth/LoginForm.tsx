@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
-import { useAuth } from "@/lib/auth/AuthContext";
+import { loginAction, type FormState } from "@/lib/auth/actions";
+import { useUserDataSync } from "@/hooks/useAuthSync";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -13,41 +14,22 @@ export function LoginForm({
   redirectTo = "/account",
 }: Readonly<LoginFormProps>) {
   const router = useRouter();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { syncUserData } = useUserDataSync();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user starts typing
-    if (error) setError(null);
-  };
+  // Use useActionState to handle server action
+  const [state, formAction, pending] = useActionState(loginAction, {});
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await login(formData.email, formData.password);
-      // Successful login
-      router.push(redirectTo);
-      router.refresh(); // Refresh to update auth state
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setIsLoading(false);
+  // Handle successful login
+  React.useEffect(() => {
+    if (state.success) {
+      // Sync user data (cart/wishlist) after successful login
+      syncUserData().then(() => {
+        router.push(redirectTo);
+        router.refresh(); // Refresh to update auth state
+      });
     }
-  };
+  }, [state.success, router, redirectTo, syncUserData]);
 
   return (
     <div className='w-full max-w-md mx-auto'>
@@ -59,7 +41,7 @@ export function LoginForm({
           <p className='text-gray-600'>Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className='space-y-6'>
+        <form action={formAction} className='space-y-6'>
           <div>
             <label
               htmlFor='email'
@@ -74,13 +56,18 @@ export function LoginForm({
                 type='email'
                 id='email'
                 name='email'
-                value={formData.email}
-                onChange={handleChange}
                 required
-                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your email'
               />
             </div>
+            {state.errors?.email && (
+              <div className='mt-1 text-sm text-red-600'>
+                {state.errors.email.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -97,10 +84,8 @@ export function LoginForm({
                 type={showPassword ? "text" : "password"}
                 id='password'
                 name='password'
-                value={formData.password}
-                onChange={handleChange}
                 required
-                className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your password'
               />
               <button
@@ -114,20 +99,36 @@ export function LoginForm({
                 )}
               </button>
             </div>
+            {state.errors?.password && (
+              <div className='mt-1 text-sm text-red-600'>
+                {state.errors.password.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
           </div>
 
-          {error && (
+          {state.errors?.general && (
             <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2'>
               <div className='w-2 h-2 bg-red-500 rounded-full'></div>
-              {error}
+              {state.errors.general.map((error, index) => (
+                <p key={index}>{error}</p>
+              ))}
+            </div>
+          )}
+
+          {state.success && (
+            <div className='bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2'>
+              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+              {state.message}
             </div>
           )}
 
           <button
             type='submit'
-            disabled={isLoading}
-            className='w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg hover:shadow-xl cursor-pointer'>
-            {isLoading ? (
+            disabled={pending}
+            className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-4 rounded-lg font-semibold text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg hover:shadow-xl cursor-pointer'>
+            {pending ? (
               <>
                 <Loader2 className='h-5 w-5 animate-spin' />
                 Signing In...
@@ -143,7 +144,7 @@ export function LoginForm({
             Don't have an account?{" "}
             <a
               href='/register'
-              className='text-purple-600 hover:text-purple-700 font-semibold cursor-pointer'>
+              className='text-primary hover:text-primary/80 font-semibold cursor-pointer'>
               Create one here
             </a>
           </p>
