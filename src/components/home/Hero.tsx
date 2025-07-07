@@ -28,7 +28,7 @@ const slides = [
     accent: "emerald",
   },
   {
-    image: "/hero/hom-bag.avif",
+    image: "/hero/hom-bag.jpg",
     title: "LUXURY ACCESSORIES",
     subtitle: "Complete Your Look",
     description:

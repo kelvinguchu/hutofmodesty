@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BiLogoInstagram, BiLogoFacebook, BiLogoTwitter } from "react-icons/bi";
+import { BiLogoInstagram, BiLogoTiktok } from "react-icons/bi";
 import {
   Search,
   Heart,
@@ -81,32 +81,25 @@ export default function Navbar({
           <div className='flex justify-between items-center py-2 text-xs bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-4 text-white border-b border-gray-700'>
             <div className='flex items-center space-x-4'>
               <a
-                href='https://instagram.com'
+                href='https://www.instagram.com/hut_of_modesty?igsh=MWNvc21zMHg2MXo4aw%3D%3D&utm_source=qr'
                 target='_blank'
                 rel='noopener noreferrer'
                 className='hover:text-primary/80 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
                 <BiLogoInstagram className='h-4 w-4' />
               </a>
               <a
-                href='https://facebook.com'
+                href='https://www.tiktok.com/@hut_of_modesty?_t=ZM-8xdIUgVuXw6&_r=1'
                 target='_blank'
                 rel='noopener noreferrer'
                 className='hover:text-primary/80 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
-                <BiLogoFacebook className='h-4 w-4' />
-              </a>
-              <a
-                href='https://twitter.com'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='hover:text-primary/80 transition-colors duration-200 hover:scale-110 transform cursor-pointer'>
-                <BiLogoTwitter className='h-4 w-4' />
+                <BiLogoTiktok className='h-4 w-4' />
               </a>
             </div>
             <div className='flex items-center space-x-4 text-gray-300'>
               <span className='flex items-center gap-2'>
                 <Phone className='h-3 w-3' />
                 <span className='hover:text-white transition-colors cursor-pointer'>
-                  +254 700 123 456
+                  +254748355387
                 </span>
               </span>
               <span className='text-gray-500'>|</span>

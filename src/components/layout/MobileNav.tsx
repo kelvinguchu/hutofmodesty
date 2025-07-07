@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Heart, ShoppingBag, Home, Grid } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  Home,
+  Grid,
+  Phone,
+  Mail,
+} from "lucide-react";
+import { BiLogoInstagram, BiLogoTiktok } from "react-icons/bi";
 import { useCartStore } from "@/lib/cart/cartStore";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
 import { WishlistSheet } from "@/components/wishlist/WishlistSheet";
@@ -106,13 +115,13 @@ export default function MobileNav({
                 <span className='text-xs mt-1 font-medium'>Categories</span>
               </button>
             </DrawerTrigger>
-            <DrawerContent className='bg-white rounded-t-2xl max-h-[80vh] overflow-hidden border-t border-gray-200 shadow-2xl'>
-              <div className='p-6 pb-0'>
-                <DrawerTitle className='text-xl font-bold text-gray-900 text-center mb-6'>
+            <DrawerContent className='bg-white rounded-t-2xl max-h-[80vh] flex flex-col border-t border-gray-200 shadow-2xl'>
+              <div className='p-6 pb-4 border-b border-gray-100'>
+                <DrawerTitle className='text-xl font-bold text-gray-900 text-center'>
                   Shop by Category
                 </DrawerTitle>
               </div>
-              <div className='px-6 max-h-[calc(80vh-100px)] overflow-y-auto pb-6'>
+              <div className='flex-grow px-6 pt-4 overflow-y-auto'>
                 <div className='space-y-1'>
                   {/* Product Categories */}
                   {categories.map((category, index) => (
@@ -143,6 +152,37 @@ export default function MobileNav({
                         )}
                     </div>
                   ))}
+                </div>
+              </div>
+              <div className='mt-auto p-4 border-t border-gray-200 bg-gray-50'>
+                <div className='flex items-center justify-center space-x-6'>
+                  <a
+                    href='tel:+254748355387'
+                    className='flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors'>
+                    <Phone className='w-4 h-4' />
+                  </a>
+                  <a
+                    href='https://www.instagram.com/hut_of_modesty?igsh=MWNvc21zMHg2MXo4aw%3D%3D&utm_source=qr'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-gray-500 hover:text-primary transition-colors'
+                    aria-label='Instagram'>
+                    <BiLogoInstagram className='h-5 w-5' />
+                  </a>
+                  <a
+                    href='https://www.tiktok.com/@hut_of_modesty?_t=ZM-8xdIUgVuXw6&_r=1'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-gray-500 hover:text-primary transition-colors'
+                    aria-label='Tiktok'>
+                    <BiLogoTiktok className='h-5 w-5' />
+                  </a>
+                  <a
+                    href='mailto:info@hutofmodesty.com'
+                    className='text-gray-500 hover:text-primary transition-colors'
+                    aria-label='Email'>
+                    <Mail className='h-5 w-5' />
+                  </a>
                 </div>
               </div>
             </DrawerContent>

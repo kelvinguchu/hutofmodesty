@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaFacebook, FaInstagram, FaTwitter, FaEnvelope } from "react-icons/fa";
+import { FaInstagram, FaEnvelope, FaTiktok } from "react-icons/fa";
 import { MapPin, Phone, Mail } from "lucide-react";
 import LogoDark from "@/components/admin/LogoDark";
 
@@ -20,22 +20,16 @@ export default function Footer() {
             </p>
             <div className='flex space-x-4 pt-4'>
               <a
-                href='#'
-                className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
-                aria-label='Facebook'>
-                <FaFacebook className='w-5 h-5' />
-              </a>
-              <a
-                href='#'
+                href='https://www.instagram.com/hut_of_modesty?igsh=MWNvc21zMHg2MXo4aw%3D%3D&utm_source=qr'
                 className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
                 aria-label='Instagram'>
                 <FaInstagram className='w-5 h-5' />
               </a>
               <a
-                href='#'
+                href='https://www.tiktok.com/@hut_of_modesty?_t=ZM-8xdIUgVuXw6&_r=1'
                 className='p-3 bg-gray-800 text-gray-300 hover:text-white hover:bg-primary transition-all duration-200 rounded-lg hover:scale-110 transform'
-                aria-label='Twitter'>
-                <FaTwitter className='w-5 h-5' />
+                aria-label='Tiktok'>
+                <FaTiktok className='w-5 h-5' />
               </a>
               <a
                 href='mailto:info@hutofmodesty.com'
@@ -44,56 +38,6 @@ export default function Footer() {
                 <FaEnvelope className='w-5 h-5' />
               </a>
             </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className='text-lg font-bold mb-6 text-white flex items-center'>
-              <span className='w-1 h-6 bg-primary rounded-full mr-3'></span>
-              Quick Links
-            </h3>
-            <ul className='space-y-3 text-sm'>
-              <li>
-                <Link
-                  href='/about'
-                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/contact'
-                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/faq'
-                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/privacy-policy'
-                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/terms-conditions'
-                  className='text-gray-300 hover:text-white hover:translate-x-2 transition-all duration-200 flex items-center group'>
-                  <span className='w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200'></span>
-                  Terms & Conditions
-                </Link>
-              </li>
-            </ul>
           </div>
 
           {/* Collections */}
@@ -163,9 +107,9 @@ export default function Footer() {
               <div className='flex items-center gap-3'>
                 <Phone className='w-4 h-4 text-primary/80 flex-shrink-0' />
                 <a
-                  href='tel:+254700123456'
+                  href='tel:+254748355387'
                   className='hover:text-white transition-colors duration-200 cursor-pointer'>
-                  +254 700 123 456
+                  +254748355387
                 </a>
               </div>
 
@@ -198,12 +142,6 @@ export default function Footer() {
                 href='/terms-conditions'
                 className='hover:text-white transition-colors duration-200'>
                 Terms
-              </Link>
-              <span>•</span>
-              <Link
-                href='/sitemap'
-                className='hover:text-white transition-colors duration-200'>
-                Sitemap
               </Link>
             </div>
           </div>
