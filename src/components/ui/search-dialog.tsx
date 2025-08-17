@@ -73,9 +73,9 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 
   const getProductUrl = (result: (typeof searchState.results)[0]) => {
     if (result.category && result.subcategory) {
-      return `/collections/${result.category.slug}/${result.subcategory.slug}/${result.id}`;
+      return `/collections/${result.category.slug}/${result.subcategory.slug}/${result.slug}`;
     }
-    return `/products/${result.id}`;
+    return `/products/${result.slug}`;
   };
 
   const hasSearched = query.trim().length >= 2;

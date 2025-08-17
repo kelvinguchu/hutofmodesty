@@ -21,8 +21,8 @@ export const getPayloadInstance = cache(async () => {
 });
 
 // Optimized product finder using React cache for deduplication
-export const findProductById = cache(
-  async (id: string): Promise<UnifiedProduct | null> => {
+export const findProductBySlug = cache(
+  async (slug: string): Promise<UnifiedProduct | null> => {
     const payload = await getPayloadInstance();
 
     // Use Promise.all to search all collections in parallel instead of sequentially
@@ -32,7 +32,7 @@ export const findProductById = cache(
           const result = await payload.find({
             collection: collection as any,
             where: {
-              id: { equals: id },
+              slug: { equals: slug },
             },
             limit: 1,
             depth: 2,
@@ -182,10 +182,10 @@ export const findCategoryBySlug = cache(async (slug: string) => {
 });
 
 // Preload function for better performance patterns
-export const preloadProduct = (id: string) => {
+export const preloadProduct = (slug: string) => {
   // void evaluates the given expression and returns undefined
   // This starts loading the product data early
-  void findProductById(id);
+  void findProductBySlug(slug);
 };
 
 export const preloadRelatedProducts = (product: UnifiedProduct) => {

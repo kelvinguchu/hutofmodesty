@@ -18,25 +18,125 @@ export function RegisterForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { syncUserData } = useUserDataSync();
 
+  // Form state management
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    firstName: "",
+    lastName: "",
+  });
+
+  // Real-time validation state
+  const [validationErrors, setValidationErrors] = useState<{
+    password?: string[];
+    confirmPassword?: string[];
+  }>({});
+
   // Use useActionState to handle server action
   const [state, formAction, pending] = useActionState(registerAction, {});
 
-  // Handle successful registration
+  // Real-time password validation
+  const validatePassword = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length > 0 && password.length < 8) {
+      errors.push("Password must be at least 8 characters long");
+    }
+
+    if (password.length >= 8) {
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+        errors.push("Password must contain uppercase, lowercase, and numbers");
+      }
+    }
+
+    return errors;
+  };
+
+  // Real-time confirm password validation
+  const validateConfirmPassword = (
+    confirmPassword: string,
+    password: string
+  ) => {
+    const errors: string[] = [];
+
+    if (confirmPassword.length > 0 && confirmPassword !== password) {
+      errors.push("Passwords do not match");
+    }
+
+    return errors;
+  };
+
+  // Handle form field changes with real-time validation
+  const handleFieldChange = (field: keyof typeof formData, value: string) => {
+    const newFormData = { ...formData, [field]: value };
+    setFormData(newFormData);
+
+    // Real-time validation
+    const newErrors = { ...validationErrors };
+
+    if (field === "password") {
+      const passwordErrors = validatePassword(value);
+      if (passwordErrors.length > 0) {
+        newErrors.password = passwordErrors;
+      } else {
+        delete newErrors.password;
+      }
+
+      // Re-validate confirm password if it exists
+      if (newFormData.confirmPassword) {
+        const confirmErrors = validateConfirmPassword(
+          newFormData.confirmPassword,
+          value
+        );
+        if (confirmErrors.length > 0) {
+          newErrors.confirmPassword = confirmErrors;
+        } else {
+          delete newErrors.confirmPassword;
+        }
+      }
+    }
+
+    if (field === "confirmPassword") {
+      const confirmErrors = validateConfirmPassword(
+        value,
+        newFormData.password
+      );
+      if (confirmErrors.length > 0) {
+        newErrors.confirmPassword = confirmErrors;
+      } else {
+        delete newErrors.confirmPassword;
+      }
+    }
+
+    setValidationErrors(newErrors);
+  };
+
+  // Handle successful registration or email verification redirect
   useEffect(() => {
     if (state.success) {
-      // Sync user data (cart/wishlist) after successful registration
-      syncUserData()
-        .then(() => {
-          router.push(redirectTo);
-          router.refresh(); // Refresh to update auth state
-        })
-        .catch((error) => {
-          // Still redirect even if sync fails
-          router.push(redirectTo);
-          router.refresh();
-        });
+      if (state.redirectTo) {
+        // Redirect to email verification page
+        router.push(state.redirectTo);
+      } else {
+        // Sync user data (cart/wishlist) after successful registration
+        syncUserData()
+          .then(() => {
+            router.push(redirectTo);
+            router.refresh(); // Refresh to update auth state
+          })
+          .catch((error) => {
+            // Still redirect even if sync fails
+            router.push(redirectTo);
+            router.refresh();
+          });
+      }
     }
-  }, [state.success, router, redirectTo, syncUserData]);
+  }, [state.success, state.redirectTo, router, redirectTo, syncUserData]);
 
   return (
     <div className='w-full max-w-md mx-auto'>
@@ -64,6 +164,10 @@ export function RegisterForm({
                   type='text'
                   id='firstName'
                   name='firstName'
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    handleFieldChange("firstName", e.target.value)
+                  }
                   required
                   className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                   placeholder='First name'
@@ -92,6 +196,10 @@ export function RegisterForm({
                   type='text'
                   id='lastName'
                   name='lastName'
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    handleFieldChange("lastName", e.target.value)
+                  }
                   required
                   className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                   placeholder='Last name'
@@ -121,6 +229,8 @@ export function RegisterForm({
                 type='email'
                 id='email'
                 name='email'
+                value={formData.email}
+                onChange={(e) => handleFieldChange("email", e.target.value)}
                 required
                 className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your email'
@@ -149,6 +259,8 @@ export function RegisterForm({
                 type={showPassword ? "text" : "password"}
                 id='password'
                 name='password'
+                value={formData.password}
+                onChange={(e) => handleFieldChange("password", e.target.value)}
                 required
                 className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Create a password'
@@ -164,13 +276,82 @@ export function RegisterForm({
                 )}
               </button>
             </div>
-            {state.errors?.password && (
+            {/* Real-time password validation */}
+            {validationErrors.password && (
+              <div className='mt-1 text-sm text-red-600'>
+                {validationErrors.password.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
+            {/* Server-side password errors (fallback) */}
+            {!validationErrors.password && state.errors?.password && (
               <div className='mt-1 text-sm text-red-600'>
                 {state.errors.password.map((error, index) => (
                   <p key={index}>{error}</p>
                 ))}
               </div>
             )}
+            {/* Password requirements hint */}
+            {!validationErrors.password && !state.errors?.password && (
+              <div className='mt-1 text-xs text-gray-500'>
+                Password must be at least 8 characters with uppercase,
+                lowercase, and numbers
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label
+              htmlFor='confirmPassword'
+              className='block text-sm font-semibold text-gray-700 mb-2'>
+              Confirm Password
+            </label>
+            <div className='relative'>
+              <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                <Lock className='h-5 w-5 text-gray-400' />
+              </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id='confirmPassword'
+                name='confirmPassword'
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  handleFieldChange("confirmPassword", e.target.value)
+                }
+                required
+                className='w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
+                placeholder='Confirm your password'
+              />
+              <button
+                type='button'
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer'>
+                {showConfirmPassword ? (
+                  <EyeOff className='h-5 w-5' />
+                ) : (
+                  <Eye className='h-5 w-5' />
+                )}
+              </button>
+            </div>
+            {/* Real-time confirm password validation */}
+            {validationErrors.confirmPassword && (
+              <div className='mt-1 text-sm text-red-600'>
+                {validationErrors.confirmPassword.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
+            {/* Server-side confirm password errors (fallback) */}
+            {!validationErrors.confirmPassword &&
+              state.errors?.confirmPassword && (
+                <div className='mt-1 text-sm text-red-600'>
+                  {state.errors.confirmPassword.map((error, index) => (
+                    <p key={index}>{error}</p>
+                  ))}
+                </div>
+              )}
           </div>
 
           {state.errors?.general && (

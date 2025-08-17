@@ -58,10 +58,7 @@ const faqData = [
 ];
 
 export default async function HomePage() {
-  // Use cached payload instance
   const payload = await getPayloadInstance();
-
-  // Initialize with empty data in case of errors (typed as PaginatedDocs<...>)
   let featuredCategories: PaginatedDocs<Category> = {
     docs: [],
     totalDocs: 0,
@@ -89,7 +86,6 @@ export default async function HomePage() {
   };
 
   try {
-    // Fetch featured categories
     featuredCategories = await payload.find({
       collection: "categories",
       where: {
@@ -104,7 +100,6 @@ export default async function HomePage() {
   }
 
   try {
-    // Fetch trending products from all collections - original approach but with cached payload
     const [
       clothingTrending,
       footwearTrending,
@@ -161,7 +156,6 @@ export default async function HomePage() {
       }),
     ]);
 
-    // Combine all trending products
     const allTrendingDocs = [
       ...clothingTrending.docs,
       ...footwearTrending.docs,
@@ -169,7 +163,6 @@ export default async function HomePage() {
       ...accessoriesTrending.docs,
     ];
 
-    // Create a mock PaginatedDocs structure for compatibility
     allTrendingProducts = {
       docs: allTrendingDocs,
       totalDocs: allTrendingDocs.length,
@@ -190,7 +183,6 @@ export default async function HomePage() {
     ...(featuredCategories.docs as CategoryCardData[]),
   ];
 
-  // Group trending products by main category
   const productsByCategory = new Map<string, Product[]>();
 
   allTrendingProducts.docs.forEach((product) => {
@@ -203,7 +195,6 @@ export default async function HomePage() {
     }
   });
 
-  // Configuration for each major category section - original design with proper accents
   const categoryConfig = {
     clothing: {
       title: "Trending Clothing",
@@ -235,7 +226,6 @@ export default async function HomePage() {
     },
   };
 
-  // Only get categories that have trending products
   const trendingCategories = Array.from(productsByCategory.keys())
     .filter((slug) => categoryConfig[slug as keyof typeof categoryConfig])
     .slice(0, 4); // All 4 major categories if they have products
@@ -270,7 +260,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Dynamic Trending Product Sections - using mono color scheme */}
+      {/* Dynamic Trending Product Sections */}
       {trendingCategories.map((categorySlug) => {
         const config =
           categoryConfig[categorySlug as keyof typeof categoryConfig];
@@ -354,7 +344,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
       <section className='py-12 mb-12 md:mb-0 sm:py-14 md:py-16 bg-black text-white'>
         <div className='container mx-auto px-4 sm:px-6 max-w-4xl'>
           <SectionTitle

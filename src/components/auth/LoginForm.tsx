@@ -2,6 +2,7 @@
 
 import React, { useState, useActionState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
 import { loginAction, type FormState } from "@/lib/auth/actions";
 import { useUserDataSync } from "@/hooks/useAuthSync";
@@ -15,27 +16,31 @@ export function LoginForm({
 }: Readonly<LoginFormProps>) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
   const { syncUserData } = useUserDataSync();
 
   // Use useActionState to handle server action
   const [state, formAction, pending] = useActionState(loginAction, {});
 
-  // Handle successful login
+  // Handle successful login or email verification redirect
   React.useEffect(() => {
-    if (state.success) {
+    if (state.success && state.redirectTo) {
       // Sync user data (cart/wishlist) after successful login
       syncUserData()
         .then(() => {
-          router.push(redirectTo);
+          router.push(state.redirectTo || redirectTo);
           router.refresh(); // Refresh to update auth state
         })
         .catch((error) => {
           // Still redirect even if sync fails
-          router.push(redirectTo);
+          router.push(state.redirectTo || redirectTo);
           router.refresh();
         });
+    } else if (state.redirectTo && !state.success) {
+      // Redirect to email verification page (for unverified users)
+      router.push(state.redirectTo);
     }
-  }, [state.success, router, redirectTo, syncUserData]);
+  }, [state.success, state.redirectTo, router, redirectTo, syncUserData]);
 
   return (
     <div className='w-full max-w-md mx-auto'>
@@ -48,6 +53,9 @@ export function LoginForm({
         </div>
 
         <form action={formAction} className='space-y-6'>
+          {/* Hidden redirect field */}
+          <input type='hidden' name='redirectTo' value={redirectTo} />
+
           <div>
             <label
               htmlFor='email'
@@ -62,6 +70,8 @@ export function LoginForm({
                 type='email'
                 id='email'
                 name='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white'
                 placeholder='Enter your email'
@@ -115,20 +125,34 @@ export function LoginForm({
           </div>
 
           {state.errors?.general && (
-            <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2'>
-              <div className='w-2 h-2 bg-red-500 rounded-full'></div>
-              {state.errors.general.map((error, index) => (
-                <p key={index}>{error}</p>
-              ))}
+            <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm'>
+              {/* Check if it's an email verification error */}
+              {state.errors.general.some(
+                (error) =>
+                  error.includes("verify your email") ||
+                  error.includes("email address before logging")
+              ) ? (
+                <div>
+                  <p className='font-medium mb-2'>
+                    Please verify your email to continue.
+                  </p>
+                  <Link
+                    href={`/verify-email?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}`}
+                    className='inline-flex items-center text-sm font-semibold text-red-700 hover:text-red-800 transition-colors'>
+                    <Mail className='w-4 h-4 mr-1' />
+                    Go to Email Verification
+                  </Link>
+                </div>
+              ) : (
+                <div className='flex items-center gap-2'>
+                  <span className='w-2 h-2 bg-red-500 rounded-full inline-block'></span>
+                  {state.errors.general[0]}
+                </div>
+              )}
             </div>
           )}
 
-          {state.success && (
-            <div className='bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2'>
-              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-              {state.message}
-            </div>
-          )}
+          {/* Success message removed - redirect happens immediately */}
 
           <button
             type='submit'
@@ -145,11 +169,18 @@ export function LoginForm({
           </button>
         </form>
 
-        <div className='mt-6 text-center'>
+        <div className='mt-6 text-center space-y-3'>
+          <p className='text-sm text-gray-600'>
+            <a
+              href={`/forgot-password${redirectTo !== "/account" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+              className='text-primary hover:text-primary/80 font-medium cursor-pointer'>
+              Forgot your password?
+            </a>
+          </p>
           <p className='text-sm text-gray-600'>
             Don't have an account?{" "}
             <a
-              href='/register'
+              href={`/register${redirectTo !== "/account" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
               className='text-primary hover:text-primary/80 font-semibold cursor-pointer'>
               Create one here
             </a>

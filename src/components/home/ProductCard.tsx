@@ -14,7 +14,7 @@ type Product = Clothing | Footwear | Fragrance | Accessory;
 
 interface ProductCardProps {
   product: Product & {
-    staticImage?: string; 
+    staticImage?: string;
   };
   imageWidth?: number;
   imageHeight?: number;
@@ -56,15 +56,11 @@ export default function ProductCard({
     imageSource ||
     "https://hwn6k89767.ufs.sh/f/k0Qi0uf9dUswVZpzzikaMTreiOA9qxR5j0HCbX2aKGJDgfuy";
 
+  // Optimized hydration - single effect
   useEffect(() => {
     setIsHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (isHydrated) {
-      setIsWishlisted(isInWishlist(product.id));
-    }
-  }, [isHydrated, isInWishlist, product.id]);
+    setIsWishlisted(isInWishlist(product.id));
+  }, [isInWishlist, product.id]);
 
   const productIsInCart = isHydrated ? isInCart(product.id) : false;
 
@@ -135,7 +131,7 @@ export default function ProductCard({
   return (
     <div className='group relative bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:shadow-gray-900/10 transition-all duration-500 hover:border-gray-300 hover:-translate-y-1 active:scale-[0.98] active:shadow-md overflow-hidden'>
       <Link
-        href={`/products/${product.id}`}
+        href={`/products/${product.slug}`}
         className='block relative overflow-hidden cursor-pointer touch-manipulation'>
         <div className='relative aspect-[5/6] w-full bg-gray-50 rounded-t-lg overflow-hidden'>
           <Image
@@ -166,7 +162,7 @@ export default function ProductCard({
         <div className='mb-3'>
           <h3 className='text-sm font-semibold text-gray-900 mb-1.5 line-clamp-2 leading-snug'>
             <Link
-              href={`/products/${product.id}`}
+              href={`/products/${product.slug}`}
               className='hover:text-gray-600 active:text-gray-700 transition-colors duration-200 cursor-pointer touch-manipulation'>
               {product.name}
             </Link>

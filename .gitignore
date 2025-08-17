@@ -49,3 +49,5 @@ aboutapp.md
 /public/sw.js
 /public/worker-*.js
 /public/fallback-*.js
+
+update-slugs.js

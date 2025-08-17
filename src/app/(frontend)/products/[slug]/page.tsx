@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 // Import our optimized cached data fetching functions
 import {
-  findProductById,
+  findProductBySlug,
   findRelatedProducts,
   preloadProduct,
   preloadRelatedProducts,
@@ -44,7 +44,7 @@ export async function generateMetadata({
 
   try {
     // Use cached function for better performance
-    const product = await findProductById(slug);
+    const product = await findProductBySlug(slug);
 
     if (!product) {
       return {
@@ -129,7 +129,7 @@ export default async function ProductPage({
   preloadProduct(slug);
 
   // Use cached function for optimized data fetching
-  const product = await findProductById(slug);
+  const product = await findProductBySlug(slug);
 
   if (!product) {
     notFound();

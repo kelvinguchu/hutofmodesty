@@ -17,11 +17,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const redirectTo =
     typeof params.redirect === "string" ? params.redirect : "/account";
   const error = typeof params.error === "string" ? params.error : null;
+  const message = typeof params.message === "string" ? params.message : null;
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-gray-50 py-12'>
       <div className='max-w-md mx-auto px-4'>
-
+        {/* Success Message Display */}
+        {message && (
+          <div className='bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2 shadow-sm'>
+            <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+            {message}
+          </div>
+        )}
 
         {/* Error Display */}
         {error && (

@@ -11,6 +11,7 @@ import config from "@/payload.config";
 import { verifySession } from "@/lib/auth/dal";
 import type { Metadata, Viewport } from "next";
 import type { CategoryUI } from "@/types/navigation";
+import { cache } from "react";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -18,6 +19,55 @@ export const viewport: Viewport = {
   maximumScale: 1,
   themeColor: "#FFFFFF",
 };
+
+// Cached function to get categories - this will significantly improve performance
+const getCachedCategories = cache(async (): Promise<CategoryUI[]> => {
+  try {
+    const payload = await getPayload({ config });
+
+    const [categoriesData, subcategoriesData] = await Promise.all([
+      payload.find({
+        collection: "categories",
+        sort: "displayOrder",
+        depth: 1,
+      }),
+      payload.find({
+        collection: "subcategories",
+        depth: 1,
+      }),
+    ]);
+
+    const categoriesMap: Record<string, CategoryUI> = {};
+    categoriesData.docs.forEach((cat: any) => {
+      categoriesMap[cat.id] = {
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        subcategories: [],
+      };
+    });
+
+    subcategoriesData.docs.forEach((subcat: any) => {
+      const categoryId =
+        typeof subcat.category === "object"
+          ? subcat.category?.id
+          : subcat.category;
+
+      if (categoryId && categoriesMap[categoryId]) {
+        categoriesMap[categoryId].subcategories.push({
+          id: subcat.id,
+          name: subcat.name,
+          slug: subcat.slug,
+        });
+      }
+    });
+
+    return Object.values(categoriesMap);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+});
 
 export const metadata: Metadata = {
   title: "Hut of Modesty - Premium Modest Fashion & Accessories",
@@ -44,7 +94,6 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Fetch categories and user data on the server
   let categories: CategoryUI[] = [];
   let sessionData: { isAuth: boolean; user: any } = {
     isAuth: false,
@@ -52,54 +101,12 @@ export default async function RootLayout({
   };
 
   try {
-    const payload = await getPayload({ config });
-
-    // Fetch user session data
+    // Only verify session - move categories to a separate cached function
     sessionData = await verifySession();
 
-    // Fetch categories and subcategories in parallel
-    const [categoriesData, subcategoriesData] = await Promise.all([
-      payload.find({
-        collection: "categories",
-        sort: "displayOrder",
-        depth: 1,
-      }),
-      payload.find({
-        collection: "subcategories",
-        depth: 1,
-      }),
-    ]);
-
-    // Create a map of categories by ID for quick lookup
-    const categoriesMap: Record<string, CategoryUI> = {};
-    categoriesData.docs.forEach((cat) => {
-      categoriesMap[cat.id] = {
-        id: cat.id,
-        name: cat.name,
-        slug: cat.slug,
-        subcategories: [],
-      };
-    });
-
-    // Organize subcategories
-    subcategoriesData.docs.forEach((subcat) => {
-      const categoryId =
-        typeof subcat.category === "object"
-          ? subcat.category?.id
-          : subcat.category;
-      if (categoryId && categoriesMap[categoryId]) {
-        categoriesMap[categoryId].subcategories.push({
-          id: subcat.id,
-          name: subcat.name,
-          slug: subcat.slug,
-        });
-      }
-    });
-
-    categories = Object.values(categoriesMap);
+    // Use cached categories - this will be much faster
+    categories = await getCachedCategories();
   } catch (error) {
-    // Don't throw error for auth failures, just use default unauthenticated state
-    // Only throw for critical errors like category fetching
     if (error instanceof Error && error.message?.includes("categories")) {
       throw error;
     }

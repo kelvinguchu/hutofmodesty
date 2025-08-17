@@ -192,6 +192,8 @@ export interface User {
    * User role for access control
    */
   role: 'customer' | 'admin';
+  verificationAttempts?: number | null;
+  lastVerificationAttempt?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -199,6 +201,8 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  _verified?: boolean | null;
+  _verificationToken?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   password?: string | null;
@@ -289,6 +293,7 @@ export interface Subcategory {
 export interface Clothing {
   id: string;
   name: string;
+  slug: string;
   description: {
     root: {
       type: string;
@@ -371,6 +376,7 @@ export interface Clothing {
 export interface Footwear {
   id: string;
   name: string;
+  slug: string;
   description: {
     root: {
       type: string;
@@ -428,6 +434,7 @@ export interface Footwear {
 export interface Fragrance {
   id: string;
   name: string;
+  slug: string;
   description: {
     root: {
       type: string;
@@ -473,6 +480,7 @@ export interface Fragrance {
 export interface Accessory {
   id: string;
   name: string;
+  slug: string;
   description: {
     root: {
       type: string;
@@ -686,6 +694,8 @@ export interface UsersSelect<T extends boolean = true> {
         postalCode?: T;
       };
   role?: T;
+  verificationAttempts?: T;
+  lastVerificationAttempt?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -693,6 +703,8 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  _verified?: T;
+  _verificationToken?: T;
   loginAttempts?: T;
   lockUntil?: T;
 }
@@ -751,6 +763,7 @@ export interface SubcategoriesSelect<T extends boolean = true> {
  */
 export interface ClothingSelect<T extends boolean = true> {
   name?: T;
+  slug?: T;
   description?: T;
   price?: T;
   category?: T;
@@ -800,6 +813,7 @@ export interface ClothingSelect<T extends boolean = true> {
  */
 export interface FootwearSelect<T extends boolean = true> {
   name?: T;
+  slug?: T;
   description?: T;
   price?: T;
   category?: T;
@@ -821,6 +835,7 @@ export interface FootwearSelect<T extends boolean = true> {
  */
 export interface FragrancesSelect<T extends boolean = true> {
   name?: T;
+  slug?: T;
   description?: T;
   price?: T;
   category?: T;
@@ -842,6 +857,7 @@ export interface FragrancesSelect<T extends boolean = true> {
  */
 export interface AccessoriesSelect<T extends boolean = true> {
   name?: T;
+  slug?: T;
   description?: T;
   price?: T;
   category?: T;

@@ -1,4 +1,12 @@
 import type { CollectionConfig } from "payload";
+import {
+  generateForgotPasswordEmailHTML,
+  generateForgotPasswordEmailSubject,
+} from "../lib/email/forgotPasswordTemplate";
+import {
+  generateEmailVerificationHTML,
+  generateEmailVerificationSubject,
+} from "../lib/email/emailVerificationTemplate";
 
 export const Users: CollectionConfig = {
   slug: "users",
@@ -8,7 +16,6 @@ export const Users: CollectionConfig = {
   hooks: {
     afterChange: [
       async ({ doc, operation, context }) => {
-        // Skip validation if this update was triggered by a hook to prevent infinite loops
         if (context?.skipValidation) {
           return doc;
         }
@@ -16,7 +23,6 @@ export const Users: CollectionConfig = {
         let needsUpdate = false;
         const updatedData: any = {};
 
-        // Validate and clean cart data
         if (doc.cart && Array.isArray(doc.cart)) {
           const validatedCart = doc.cart.filter((item: any) => {
             return (
@@ -30,14 +36,12 @@ export const Users: CollectionConfig = {
             );
           });
 
-          // Remove duplicates based on item.id
           const uniqueCart = validatedCart.reduce(
             (acc: any[], current: any) => {
               const existingIndex = acc.findIndex(
                 (item) => item.id === current.id
               );
               if (existingIndex >= 0) {
-                // Merge quantities for duplicate items
                 acc[existingIndex].quantity += current.quantity;
               } else {
                 acc.push(current);
@@ -53,7 +57,6 @@ export const Users: CollectionConfig = {
           }
         }
 
-        // Validate and clean wishlist data
         if (doc.wishlist && Array.isArray(doc.wishlist)) {
           const validatedWishlist = doc.wishlist.filter((item: any) => {
             return (
@@ -65,7 +68,6 @@ export const Users: CollectionConfig = {
             );
           });
 
-          // Remove duplicates based on item.id
           const uniqueWishlist = validatedWishlist.reduce(
             (acc: any[], current: any) => {
               const exists = acc.some((item) => item.id === current.id);
@@ -83,7 +85,6 @@ export const Users: CollectionConfig = {
           }
         }
 
-        // Update the document if validation changes were needed
         if (needsUpdate && operation !== "create") {
           try {
             const payload = (this as any).payload;
@@ -91,10 +92,10 @@ export const Users: CollectionConfig = {
               collection: "users",
               id: doc.id,
               data: updatedData,
-              context: { skipValidation: true }, // Prevent infinite loop
+              context: { skipValidation: true },
             });
           } catch (error) {
-            // Silently handle validation update errors
+            console.error("Error updating user data after validation:", error);
           }
         }
 
@@ -106,8 +107,21 @@ export const Users: CollectionConfig = {
     cookies: {
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       secure: process.env.NODE_ENV === "production",
+      domain:
+        process.env.NODE_ENV === "production"
+          ? new URL(process.env.NEXT_PUBLIC_SERVER_URL || "").hostname
+          : undefined,
     },
     tokenExpiration: 86400,
+    verify: {
+      generateEmailHTML: generateEmailVerificationHTML,
+      generateEmailSubject: generateEmailVerificationSubject,
+    },
+    forgotPassword: {
+      expiration: 1000 * 60 * 60 * 2,
+      generateEmailHTML: generateForgotPasswordEmailHTML,
+      generateEmailSubject: generateForgotPasswordEmailSubject,
+    },
   },
   access: {
     create: () => true,
@@ -122,9 +136,18 @@ export const Users: CollectionConfig = {
           },
         };
       }
+
+      // Deny unauthenticated reads for security
+      // resetPassword now uses overrideAccess: true to bypass this
       return false;
     },
     update: ({ req: { user } }) => {
+      // Allow password reset operations - Payload's resetPassword bypasses normal auth
+      // We need to allow unauthenticated updates for password reset operations
+      if (!user) {
+        return true;
+      }
+
       if (user) {
         if (user.role === "admin") {
           return true;
@@ -135,6 +158,7 @@ export const Users: CollectionConfig = {
           },
         };
       }
+
       return false;
     },
     delete: ({ req: { user } }) => {
@@ -257,6 +281,30 @@ export const Users: CollectionConfig = {
       },
       admin: {
         description: "User role for access control",
+      },
+    },
+    // Email verification tracking fields
+    {
+      name: "verificationAttempts",
+      type: "number",
+      defaultValue: 0,
+      admin: {
+        hidden: true, // Hide from admin UI
+      },
+      access: {
+        read: ({ req }) => req.user?.role === "admin",
+        update: ({ req }) => req.user?.role === "admin",
+      },
+    },
+    {
+      name: "lastVerificationAttempt",
+      type: "date",
+      admin: {
+        hidden: true, // Hide from admin UI
+      },
+      access: {
+        read: ({ req }) => req.user?.role === "admin",
+        update: ({ req }) => req.user?.role === "admin",
       },
     },
   ],

@@ -9,6 +9,7 @@ import { normalizeMediaURL } from "@/lib/utils";
 // Updated interface to match our new collection structure
 interface Product {
   id: string;
+  slug: string;
   name: string;
   price: number;
   mainImage?:
@@ -131,7 +132,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
                 key={product.id}
                 className='group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden'>
                 {/* Product Image */}
-                <Link href={`/products/${product.id}`} className='block'>
+                <Link href={`/products/${product.slug}`} className='block'>
                   <div className='aspect-[3/4] sm:aspect-[4/5] relative overflow-hidden bg-gray-100'>
                     {imageUrl ? (
                       <Image
@@ -188,7 +189,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
                   )}
 
                   {/* Product Name */}
-                  <Link href={`/products/${product.id}`}>
+                  <Link href={`/products/${product.slug}`}>
                     <h3 className='text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 hover:text-primary transition-colors duration-200 leading-tight'>
                       {product.name}
                     </h3>

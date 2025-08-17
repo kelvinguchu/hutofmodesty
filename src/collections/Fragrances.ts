@@ -17,6 +17,29 @@ export const Fragrances: CollectionConfig = {
       required: true,
     },
     {
+      name: "slug",
+      type: "text",
+      required: true,
+      unique: true,
+      index: true,
+      admin: {
+        position: "sidebar",
+      },
+      hooks: {
+        beforeValidate: [
+          ({ data }) => {
+            if (data?.name && !data?.slug) {
+              data.slug = data.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/(^-|-$)/g, "");
+            }
+            return data;
+          },
+        ],
+      },
+    },
+    {
       name: "description",
       type: "richText",
       required: true,
