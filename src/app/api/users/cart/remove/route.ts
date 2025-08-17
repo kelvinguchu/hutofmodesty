@@ -21,32 +21,43 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { cartItems } = body;
+    const { itemId } = body;
 
-    if (!Array.isArray(cartItems)) {
-      return NextResponse.json(
-        { message: "Invalid cart data format" },
-        { status: 400 }
-      );
+    if (!itemId || typeof itemId !== "string") {
+      return NextResponse.json({ message: "Invalid item ID" }, { status: 400 });
     }
+
+    const currentUser = await payload.findByID({
+      collection: "users",
+      id: authResult.user.id,
+    });
+
+    const currentCart: any[] = Array.isArray(currentUser.cart)
+      ? currentUser.cart
+      : [];
+
+    const updatedCart = currentCart.filter(
+      (cartItem: any) => cartItem.id !== itemId
+    );
 
     await payload.update({
       collection: "users",
       id: authResult.user.id,
       data: {
-        cart: cartItems,
+        cart: updatedCart,
       },
       overrideAccess: true,
     });
 
     return NextResponse.json({
-      message: "Cart synchronized successfully",
+      message: "Item removed from cart successfully",
       success: true,
+      cart: updatedCart,
     });
   } catch (error) {
     return NextResponse.json(
       {
-        message: "Failed to synchronize cart data",
+        message: "Failed to remove item from cart",
         success: false,
       },
       { status: 500 }

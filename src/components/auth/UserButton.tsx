@@ -31,7 +31,6 @@ export function UserButton({
   const { clearLocalData } = useUserDataSync();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Style variants
   const isMobile = variant === "mobile";
   const baseStyles = isMobile
     ? "group transition-colors duration-200"
@@ -42,18 +41,14 @@ export function UserButton({
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Clear local cart and wishlist data
       clearLocalData();
-      // Call server logout action
       await logoutAction();
     } catch (error) {
-      console.error("Logout failed:", error);
       setIsLoggingOut(false);
     }
   };
 
   if (!isAuthenticated || !user) {
-    // Not authenticated - show login link
     return (
       <Link
         href='/login'
@@ -66,11 +61,9 @@ export function UserButton({
     );
   }
 
-  // Get user initials for fallback
   const initials =
     `${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase();
 
-  // Get profile photo URL if available
   const profilePhotoUrl =
     user.profilePhoto &&
     typeof user.profilePhoto === "object" &&
@@ -78,7 +71,6 @@ export function UserButton({
       ? user.profilePhoto.url
       : null;
 
-  // Mobile variant - simple link to account
   if (isMobile) {
     return (
       <Link
@@ -103,12 +95,11 @@ export function UserButton({
     );
   }
 
-  // Desktop variant - dropdown menu
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`${baseStyles} ${paddingStyles} text-gray-700 hover:text-purple-600 cursor-pointer ${className}`}
+          className={`${baseStyles} ${paddingStyles} text-gray-700 hover:text-primary cursor-pointer ${className}`}
           aria-label='User menu'>
           <div className='relative'>
             <Avatar className='w-8 h-8 ring-2 ring-transparent group-hover:ring-purple-200 transition-all duration-200'>
@@ -119,12 +110,11 @@ export function UserButton({
                   className='object-cover'
                 />
               )}
-              <AvatarFallback className='bg-gradient-to-br from-purple-500 to-purple-600 text-white text-sm font-bold'>
+              <AvatarFallback className='bg-primary text-white text-sm font-bold'>
                 {initials || <User className='w-4 h-4' />}
               </AvatarFallback>
             </Avatar>
 
-            {/* Online status indicator */}
             <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm'></div>
           </div>
         </button>

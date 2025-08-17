@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,6 +36,7 @@ interface OrderDetails {
   payment: {
     method: string;
     transactionId?: string;
+    details?: any;
   };
 }
 
@@ -63,7 +64,6 @@ export default function ConfirmationContent() {
         const data = await response.json();
         setOrder(data);
       } catch (err) {
-        console.error("Error fetching order:", err);
         setError(
           "Could not load order details. Please contact customer support."
         );
@@ -76,7 +76,6 @@ export default function ConfirmationContent() {
   }, [orderId]);
 
   if (loading) {
-    // Return null or a minimal loader here, the main loader is in the Suspense fallback
     return null;
   }
 
@@ -103,23 +102,12 @@ export default function ConfirmationContent() {
     );
   }
 
-  // Format payment method for display
   const paymentMethodDisplay = () => {
-    switch (order.payment.method) {
-      case "mpesa":
-        return "M-Pesa";
-      case "card":
-        return "Card Payment";
-      case "bank":
-        return "Bank Transfer";
-      default:
-        return order.payment.method;
-    }
+    return "M-Pesa";
   };
 
   return (
     <div className='space-y-8'>
-      {/* Success Header */}
       <div className='bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center'>
         <div className='w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6'>
           <CheckCircle className='w-10 h-10 text-green-600' />
@@ -202,6 +190,14 @@ export default function ConfirmationContent() {
                   </span>
                 </div>
               )}
+              {order.payment.details?.invoice?.invoice_id && (
+                <div className='flex justify-between items-center'>
+                  <span className='text-gray-600'>Invoice ID:</span>
+                  <span className='text-gray-900 font-mono text-sm'>
+                    {order.payment.details.invoice.invoice_id}
+                  </span>
+                </div>
+              )}
               <div className='flex justify-between items-center pt-3 border-t border-gray-200'>
                 <span className='text-gray-600'>Status:</span>
                 <span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800'>
@@ -241,10 +237,10 @@ export default function ConfirmationContent() {
                   </h3>
                   <div className='flex justify-between items-center'>
                     <p className='text-sm text-gray-600'>
-                      ${item.price.toFixed(2)} × {item.quantity}
+                      KES {item.price.toFixed(2)} × {item.quantity}
                     </p>
                     <p className='text-sm font-bold text-gray-900'>
-                      ${(item.price * item.quantity).toFixed(2)}
+                      KES {(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -257,18 +253,19 @@ export default function ConfirmationContent() {
             <div className='flex justify-between text-sm'>
               <span className='text-gray-600'>Subtotal:</span>
               <span className='text-gray-900 font-medium'>
-                ${order.subtotal.toFixed(2)}
+                KES {order.subtotal.toFixed(2)}
               </span>
             </div>
-            <div className='flex justify-between text-sm'>
-              <span className='text-gray-600'>Shipping:</span>
-              <span className='text-gray-900 font-medium'>
-                ${order.shippingFee.toFixed(2)}
-              </span>
+            <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 my-3'>
+              <p className='text-blue-800 text-sm font-medium text-center'>
+                Shipping cost will be communicated according to destination
+              </p>
             </div>
             <div className='flex justify-between text-lg font-bold pt-3 border-t border-gray-200'>
               <span className='text-gray-900'>Total:</span>
-              <span className='text-gray-900'>${order.total.toFixed(2)}</span>
+              <span className='text-gray-900'>
+                KES {order.total.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

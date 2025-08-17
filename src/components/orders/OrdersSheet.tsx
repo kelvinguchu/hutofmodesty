@@ -199,7 +199,7 @@ export function OrdersSheet({ children, user }: Readonly<OrdersSheetProps>) {
                 </div>
                 <div className='text-right'>
                   <p className='text-lg font-bold text-gray-900'>
-                    ${order.total.toFixed(2)}
+                    KES {order.total.toFixed(2)}
                   </p>
                   <p className='text-sm text-gray-500 flex items-center gap-1'>
                     <Calendar className='w-3 h-3' />
@@ -229,12 +229,12 @@ export function OrdersSheet({ children, user }: Readonly<OrdersSheetProps>) {
                         {item.name}
                       </h4>
                       <p className='text-xs text-gray-500'>
-                        Qty: {item.quantity} × ${item.price.toFixed(2)}
+                        Qty: {item.quantity} × KES {item.price.toFixed(2)}
                       </p>
                     </div>
                     <div className='text-right'>
                       <p className='text-sm font-bold text-gray-900'>
-                        ${(item.price * item.quantity).toFixed(2)}
+                        KES {(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>

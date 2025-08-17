@@ -44,7 +44,6 @@ export const findProductById = cache(
             ? { collection, product: result.docs[0] }
             : null;
         } catch (error) {
-          console.error(`Error searching in ${collection}:`, error);
           return null;
         }
       }

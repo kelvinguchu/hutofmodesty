@@ -34,7 +34,6 @@ export function useCSRF() {
         error: null,
       });
     } catch (error) {
-      console.error("Error fetching CSRF token:", error);
       setState({
         token: null,
         isLoading: false,

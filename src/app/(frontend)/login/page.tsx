@@ -47,7 +47,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               New to Hut of Modesty?{" "}
               <Link
                 href={`/register${redirectTo !== "/account" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-                className='text-purple-600 hover:text-purple-700 font-semibold transition-colors cursor-pointer'>
+                className='text-primary hover:text-primary/80 font-semibold transition-colors cursor-pointer'>
                 Create your account
               </Link>
             </p>

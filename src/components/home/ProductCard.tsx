@@ -8,16 +8,13 @@ import { useCartStore } from "@/lib/cart/cartStore";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
 import { CartSheet } from "@/components/cart/CartSheet";
 import { normalizeMediaURL } from "@/lib/utils";
-
-// Import the types we need
 import type { Clothing, Footwear, Fragrance, Accessory } from "@/payload-types";
 
-// Union type for all product types
 type Product = Clothing | Footwear | Fragrance | Accessory;
 
 interface ProductCardProps {
   product: Product & {
-    staticImage?: string; // For fallback images
+    staticImage?: string; 
   };
   imageWidth?: number;
   imageHeight?: number;
@@ -40,10 +37,8 @@ export default function ProductCard({
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Handle image source (either from CMS or static folder)
   let imageSource: string | undefined;
 
-  // Only use the URL if mainImage is populated (is an object with a url)
   if (
     product.mainImage &&
     typeof product.mainImage === "object" &&
@@ -53,30 +48,26 @@ export default function ProductCard({
     imageSource = normalizeMediaURL(product.mainImage.url);
   }
 
-  // Fallback to staticImage if imageSource is still undefined
   if (!imageSource && product.staticImage) {
     imageSource = product.staticImage;
   }
 
-  // Provide a default placeholder if no image source is found after checks
-  const finalImageSource = imageSource || "/placeholder-product.jpg";
+  const finalImageSource =
+    imageSource ||
+    "https://hwn6k89767.ufs.sh/f/k0Qi0uf9dUswVZpzzikaMTreiOA9qxR5j0HCbX2aKGJDgfuy";
 
-  // Set hydrated state after mount to prevent hydration mismatch
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  // Check if the product is in wishlist when component mounts or wishlist changes
   useEffect(() => {
     if (isHydrated) {
       setIsWishlisted(isInWishlist(product.id));
     }
   }, [isHydrated, isInWishlist, product.id]);
 
-  // Check if product is in cart - only after hydration to prevent mismatch
   const productIsInCart = isHydrated ? isInCart(product.id) : false;
 
-  // Handle wishlist toggle
   const handleWishlistToggle = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
@@ -95,7 +86,6 @@ export default function ProductCard({
     }
   };
 
-  // Handle add to cart
   const handleAddToCart = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
@@ -109,10 +99,8 @@ export default function ProductCard({
         image: imageSource,
       });
 
-      // Show confirmation
       setIsAddedToCart(true);
 
-      // Reset after 2 seconds
       setTimeout(() => {
         setIsAddedToCart(false);
       }, 2000);
@@ -146,7 +134,6 @@ export default function ProductCard({
 
   return (
     <div className='group relative bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:shadow-gray-900/10 transition-all duration-500 hover:border-gray-300 hover:-translate-y-1 active:scale-[0.98] active:shadow-md overflow-hidden'>
-      {/* Product Image */}
       <Link
         href={`/products/${product.id}`}
         className='block relative overflow-hidden cursor-pointer touch-manipulation'>
@@ -158,12 +145,10 @@ export default function ProductCard({
             sizes='(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'
             className='object-cover object-center transition-transform duration-700 group-hover:scale-[1.02] group-active:scale-[1.01]'
           />
-          {/* Subtle overlay on hover */}
           <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 group-active:bg-black/10 transition-colors duration-300'></div>
         </div>
       </Link>
 
-      {/* Wishlist button - improved mobile accessibility */}
       <button
         onClick={handleWishlistToggle}
         className='absolute right-2 sm:right-2.5 top-2 sm:top-2.5 flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center bg-white/95 backdrop-blur-sm hover:bg-white active:bg-white transition-all duration-300 rounded-full shadow-sm border border-gray-100/50 hover:border-gray-200 active:border-gray-300 cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2'
@@ -177,9 +162,7 @@ export default function ProductCard({
         />
       </button>
 
-      {/* Product Info - responsive padding */}
       <div className='p-3 sm:p-4'>
-        {/* Product name and price */}
         <div className='mb-3'>
           <h3 className='text-sm font-semibold text-gray-900 mb-1.5 line-clamp-2 leading-snug'>
             <Link
@@ -191,12 +174,11 @@ export default function ProductCard({
 
           <div className='flex items-center justify-between'>
             <span className='text-base font-bold text-gray-900'>
-              ${product.price.toFixed(2)}
+              KES {product.price.toFixed(2)}
             </span>
           </div>
         </div>
 
-        {/* Add to Cart Button - improved mobile accessibility */}
         <div>
           {productIsInCart ? (
             <CartSheet>
@@ -231,7 +213,6 @@ export default function ProductCard({
         </div>
       </div>
 
-      {/* Subtle bottom accent line */}
       <div
         className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-${colors.primary}/20 to-transparent opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300`}></div>
     </div>

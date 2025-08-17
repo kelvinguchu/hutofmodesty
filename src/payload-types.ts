@@ -527,6 +527,10 @@ export interface Accessory {
 export interface Order {
   id: string;
   /**
+   * User who placed the order (if authenticated)
+   */
+  user?: (string | null) | User;
+  /**
    * Unique order identifier
    */
   orderNumber: string;
@@ -540,7 +544,7 @@ export interface Order {
     address: string;
     city: string;
     country: string;
-    postalCode: string;
+    postalCode?: string | null;
   };
   items: {
     productId: string;
@@ -555,7 +559,7 @@ export interface Order {
   total: number;
   status: 'pending' | 'processing' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
   payment: {
-    method: 'card' | 'mpesa' | 'bank';
+    method: 'mpesa';
     /**
      * Payment provider transaction ID
      */
@@ -858,6 +862,7 @@ export interface AccessoriesSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
+  user?: T;
   orderNumber?: T;
   customer?:
     | T

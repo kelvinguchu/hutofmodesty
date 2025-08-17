@@ -1,9 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { login, logout, refresh } from "@payloadcms/next/auth";
+import { login, logout } from "@payloadcms/next/auth";
 import config from "@/payload.config";
-import type { RegisterData } from "./types";
 import { getPayload } from "payload";
 
 export interface FormState {
@@ -18,7 +17,6 @@ export interface FormState {
   message?: string;
 }
 
-// Login action using Payload's built-in login
 export async function loginAction(
   prevState: FormState,
   formData: FormData
@@ -26,7 +24,6 @@ export async function loginAction(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  // Basic validation
   if (!email || !password) {
     return {
       errors: {
@@ -45,7 +42,6 @@ export async function loginAction(
     });
 
     if (result.user) {
-      // Success - redirect will happen on client side
       return { success: true, message: "Login successful" };
     } else {
       return {
@@ -63,7 +59,6 @@ export async function loginAction(
   }
 }
 
-// Register action using Payload's create operation
 export async function registerAction(
   prevState: FormState,
   formData: FormData
@@ -73,7 +68,6 @@ export async function registerAction(
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
 
-  // Basic validation
   const errors: FormState["errors"] = {};
 
   if (!email) errors.email = ["Email is required"];
@@ -88,7 +82,6 @@ export async function registerAction(
   try {
     const payload = await getPayload({ config });
 
-    // Create the user
     const newUser = await payload.create({
       collection: "users",
       data: {
@@ -101,7 +94,6 @@ export async function registerAction(
     });
 
     if (newUser) {
-      // Auto-login after registration
       try {
         await login({
           collection: "users",
@@ -125,7 +117,6 @@ export async function registerAction(
       };
     }
   } catch (error) {
-    // Handle duplicate email error with proper type checking
     if (
       error instanceof Error &&
       (error.message.includes("duplicate") ||
@@ -155,19 +146,14 @@ export async function logoutAction() {
       config,
     });
   } catch (error) {
-    // Silent fail - always redirect regardless
   }
 
-  // Always redirect to home after logout attempt
   redirect("/");
 }
 
 // Refresh token action - simplified for Payload CMS
 export async function refreshAction() {
   try {
-    // For Payload CMS, we don't need to call refresh explicitly
-    // The session is handled automatically via cookies
-    // This function is kept for compatibility but may not be needed
     return { success: true };
   } catch (error) {
     throw new Error(

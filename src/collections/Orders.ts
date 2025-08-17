@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { sendOrderConfirmationEmails } from "../lib/email/orderEmails";
 
 const Orders: CollectionConfig = {
   slug: "orders",
@@ -11,7 +12,53 @@ const Orders: CollectionConfig = {
     create: () => true,
     update: () => true,
   },
+  hooks: {
+    beforeChange: [
+      async ({ data, operation }) => {
+        if (operation === "create" && !data.orderNumber) {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, "0");
+          const day = String(now.getDate()).padStart(2, "0");
+
+          const randomNum = Math.floor(1000 + Math.random() * 9000);
+
+          data.orderNumber = `HOM-${year}${month}${day}-${randomNum}`;
+        }
+
+        return data;
+      },
+    ],
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        if (operation === "create" && doc.status === "paid") {
+          try {
+            await sendOrderConfirmationEmails({
+              order: doc,
+              req,
+            });
+          } catch (error) {
+            req.payload.logger.error(
+              "Failed to send order confirmation emails:",
+              error
+            );
+          }
+        }
+
+        return doc;
+      },
+    ],
+  },
   fields: [
+    {
+      name: "user",
+      type: "relationship",
+      relationTo: "users",
+      required: false,
+      admin: {
+        description: "User who placed the order (if authenticated)",
+      },
+    },
     {
       name: "orderNumber",
       type: "text",
@@ -68,7 +115,7 @@ const Orders: CollectionConfig = {
         {
           name: "postalCode",
           type: "text",
-          required: true,
+          required: false,
         },
       ],
     },
@@ -159,18 +206,11 @@ const Orders: CollectionConfig = {
           name: "method",
           type: "select",
           required: true,
+          defaultValue: "mpesa",
           options: [
-            {
-              label: "Card Payment",
-              value: "card",
-            },
             {
               label: "M-Pesa",
               value: "mpesa",
-            },
-            {
-              label: "Bank Transfer",
-              value: "bank",
             },
           ],
         },

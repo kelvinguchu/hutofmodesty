@@ -3,17 +3,15 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X, Trash2, Plus, Minus, ShoppingBag, User } from "lucide-react";
-import { useCartStore } from "@/lib/cart/cartStore";
+import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
+import { useCartWithSync } from "@/hooks/useCartWithSync";
 import { useUserDataSync } from "@/hooks/useAuthSync";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet";
 import type { AuthUser } from "@/lib/auth/types";
 
@@ -26,39 +24,49 @@ interface CartSheetProps {
 export function CartSheet({ children, user, isAuthenticated }: CartSheetProps) {
   const [open, setOpen] = useState(false);
   const { items, itemCount, total, removeItem, updateQuantity, clearCart } =
-    useCartStore();
+    useCartWithSync({ isAuthenticated: !!isAuthenticated });
   const { clearCartData } = useUserDataSync();
 
-  const handleIncreaseQuantity = (id: string, currentQuantity: number) => {
-    updateQuantity(id, currentQuantity + 1);
+  const handleIncreaseQuantity = async (
+    id: string,
+    currentQuantity: number
+  ) => {
+    try {
+      await updateQuantity(id, currentQuantity + 1);
+    } catch (error) {
+      console.error("Failed to update quantity:", error);
+    }
   };
 
-  const handleDecreaseQuantity = (id: string, currentQuantity: number) => {
-    if (currentQuantity > 1) {
-      updateQuantity(id, currentQuantity - 1);
-    } else {
-      removeItem(id);
+  const handleDecreaseQuantity = async (
+    id: string,
+    currentQuantity: number
+  ) => {
+    try {
+      if (currentQuantity > 1) {
+        await updateQuantity(id, currentQuantity - 1);
+      } else {
+        await removeItem(id);
+      }
+    } catch (error) {
+      console.error("Failed to update quantity:", error);
     }
   };
 
   const handleCheckout = () => {
-    // Close the sheet when proceeding to checkout
     setOpen(false);
   };
 
   const handleClearCart = async () => {
     if (isAuthenticated && user) {
-      // Clear both local and server cart data for authenticated users
       await clearCartData();
     } else {
-      // Clear only local cart data for guest users
       clearCart();
     }
   };
 
   const getCheckoutUrl = () => {
     if (!isAuthenticated || !user) {
-      // If user is not authenticated, redirect to login with checkout redirect
       return `/login?redirect=${encodeURIComponent("/checkout")}`;
     }
     return "/checkout";
@@ -128,7 +136,7 @@ export function CartSheet({ children, user, isAuthenticated }: CartSheetProps) {
                           </Link>
                         </h3>
                         <p className='text-lg font-bold text-gray-900 mb-3'>
-                          ${item.price.toFixed(2)}
+                          KES{item.price.toFixed(2)}
                         </p>
 
                         <div className='flex items-center justify-between'>
@@ -152,7 +160,13 @@ export function CartSheet({ children, user, isAuthenticated }: CartSheetProps) {
                             </button>
                           </div>
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={async () => {
+                              try {
+                                await removeItem(item.id);
+                              } catch (error) {
+                                console.error("Failed to remove item:", error);
+                              }
+                            }}
                             className='flex items-center text-xs text-gray-500 hover:text-red-500 transition-colors cursor-pointer bg-gray-50 hover:bg-red-50 px-3 py-2 rounded-lg'>
                             <Trash2 className='w-3 h-3 mr-1' />
                             Remove
@@ -162,7 +176,7 @@ export function CartSheet({ children, user, isAuthenticated }: CartSheetProps) {
                           <p className='text-sm text-right text-gray-600'>
                             Subtotal:{" "}
                             <span className='font-semibold text-gray-900'>
-                              ${(item.price * item.quantity).toFixed(2)}
+                              KES {(item.price * item.quantity).toFixed(2)}
                             </span>
                           </p>
                         </div>
@@ -184,7 +198,7 @@ export function CartSheet({ children, user, isAuthenticated }: CartSheetProps) {
                 </span>
                 <div className='text-right'>
                   <span className='text-2xl font-bold text-gray-900'>
-                    ${total.toFixed(2)}
+                    KES {total.toFixed(2)}
                   </span>
                   <p className='text-xs text-gray-500'>
                     Shipping & taxes calculated at checkout

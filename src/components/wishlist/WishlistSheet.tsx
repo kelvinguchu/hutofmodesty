@@ -12,8 +12,8 @@ import {
   AlertCircle,
   User,
 } from "lucide-react";
-import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
-import { useCartStore } from "@/lib/cart/cartStore";
+import { useWishlistWithSync } from "@/hooks/useWishlistWithSync";
+import { useCartWithSync } from "@/hooks/useCartWithSync";
 import { useUserDataSync } from "@/hooks/useAuthSync";
 import {
   Sheet,
@@ -36,32 +36,40 @@ export function WishlistSheet({
   user,
   isAuthenticated,
 }: WishlistSheetProps) {
-  const { items, removeItem, clearWishlist } = useWishlistStore();
-  const { isInCart, addItem: addToCart } = useCartStore();
+  const { items, removeItem, clearWishlist } = useWishlistWithSync({
+    isAuthenticated: !!isAuthenticated,
+  });
+  const { isInCart, addItem: addToCart } = useCartWithSync({
+    isAuthenticated: !!isAuthenticated,
+  });
   const { clearWishlistData } = useUserDataSync();
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   // Check if an item is already in the cart
   // isInCart function is now available directly from useCartStore
 
-  const handleAddToCart = (item: any) => {
+  const handleAddToCart = async (item: any) => {
     // Only add if not already in cart
     if (!isInCart(item.id)) {
-      addToCart({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: 1,
-        image: item.image,
-      });
+      try {
+        await addToCart({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: 1,
+          image: item.image,
+        });
 
-      // Show added indicator
-      setAddedItems((prev) => ({ ...prev, [item.id]: true }));
+        // Show added indicator
+        setAddedItems((prev) => ({ ...prev, [item.id]: true }));
 
-      // Reset after 2 seconds
-      setTimeout(() => {
-        setAddedItems((prev) => ({ ...prev, [item.id]: false }));
-      }, 2000);
+        // Reset after 2 seconds
+        setTimeout(() => {
+          setAddedItems((prev) => ({ ...prev, [item.id]: false }));
+        }, 2000);
+      } catch (error) {
+        console.error("Failed to add item to cart:", error);
+      }
     }
   };
 
@@ -139,7 +147,7 @@ export function WishlistSheet({
                           </Link>
                         </h3>
                         <p className='text-lg font-bold text-gray-900 mb-2'>
-                          ${item.price.toFixed(2)}
+                          KES {item.price.toFixed(2)}
                         </p>
 
                         {isInCart(item.id) && (
@@ -180,7 +188,13 @@ export function WishlistSheet({
                             )}
                           </button>
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={async () => {
+                              try {
+                                await removeItem(item.id);
+                              } catch (error) {
+                                console.error("Failed to remove item:", error);
+                              }
+                            }}
                             className='flex items-center text-xs text-gray-500 hover:text-red-500 transition-colors cursor-pointer bg-gray-50 hover:bg-red-50 px-3 py-2 rounded-lg'>
                             <Trash2 className='w-3 h-3 mr-1' />
                             Remove

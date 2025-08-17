@@ -2,41 +2,69 @@ import { getPayload } from "payload";
 import { NextResponse, NextRequest } from "next/server";
 import config from "@/payload.config";
 
-// Generate a unique order number
-function generateOrderNumber() {
-  const date = new Date();
-  const year = date.getFullYear().toString().slice(2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  const random = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, "0");
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
 
-  return `QS${year}${month}${day}-${random}`;
+type OrderStatus =
+  | "pending"
+  | "processing"
+  | "paid"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+type PaymentStatus = "pending" | "processing" | "complete" | "failed";
+
+interface OrderRequestBody {
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  shippingAddress: {
+    address: string;
+    city: string;
+    country: string;
+    postalCode: string;
+  };
+  items: OrderItem[];
+  subtotal: number;
+  shippingFee: number;
+  total: number;
+  status?: OrderStatus;
+  payment?: {
+    method?: string;
+    transactionId?: string;
+    status?: PaymentStatus;
+    details?: Record<string, unknown>;
+  };
 }
 
 export async function POST(request: Request) {
   try {
     const payload = await getPayload({ config });
-    const body = await request.json();
+    const body: OrderRequestBody = await request.json();
 
-    // Map payment method from IntaSend to our internal format if needed
-    let paymentMethod = body.payment?.method ?? "card"; 
-    if (paymentMethod) {
-      if (paymentMethod.toLowerCase().includes("mpesa")) {
-        paymentMethod = "mpesa";
-      } else if (paymentMethod.toLowerCase().includes("bank")) {
-        paymentMethod = "bank";
-      } else {
-        paymentMethod = "card"; 
-      }
-    }
+    const headers = new Headers();
+    request.headers.forEach((value, key) => {
+      headers.set(key, value);
+    });
 
-    // Create the order with payment information
+    const authResult = await payload.auth({ headers });
+    const paymentMethod = "mpesa";
+
+    const orderNumber = `HOM-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
     const order = await payload.create({
       collection: "orders",
       data: {
-        orderNumber: generateOrderNumber(),
+        user: authResult.user?.id || null,
+        orderNumber,
         customer: {
           firstName: body.customer.firstName,
           lastName: body.customer.lastName,
@@ -49,7 +77,7 @@ export async function POST(request: Request) {
           country: body.shippingAddress.country,
           postalCode: body.shippingAddress.postalCode,
         },
-        items: body.items.map((item: any) => ({
+        items: body.items.map((item: OrderItem) => ({
           productId: item.id,
           name: item.name,
           price: item.price,
@@ -71,7 +99,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
-    console.error("Error creating order:", error);
     return NextResponse.json(
       { error: "Failed to create order" },
       { status: 500 }
@@ -83,36 +110,30 @@ export async function GET(request: NextRequest) {
   try {
     const payload = await getPayload({ config });
 
-    // Get the authenticated user
     const { user } = await payload.auth({ headers: request.headers });
 
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch orders for the authenticated user
     const orders = await payload.find({
       collection: "orders",
       where: {
-        "customer.email": {
-          equals: user.email,
+        user: {
+          equals: user.id,
         },
       },
       sort: "-createdAt",
       limit: 50,
-      depth: 1, // Reduce depth to avoid session issues
+      depth: 1,
     });
 
     return NextResponse.json(orders);
   } catch (error) {
-    console.error("Orders fetch error:", error);
-
-    // If it's a session error, try to return empty result instead of error
     if (
       error instanceof Error &&
       (error.message?.includes("session") || error.message?.includes("Session"))
     ) {
-      console.warn("Session error detected, returning empty orders list");
       return NextResponse.json({ docs: [], totalDocs: 0, limit: 50, page: 1 });
     }
 

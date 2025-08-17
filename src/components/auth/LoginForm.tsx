@@ -24,10 +24,16 @@ export function LoginForm({
   React.useEffect(() => {
     if (state.success) {
       // Sync user data (cart/wishlist) after successful login
-      syncUserData().then(() => {
-        router.push(redirectTo);
-        router.refresh(); // Refresh to update auth state
-      });
+      syncUserData()
+        .then(() => {
+          router.push(redirectTo);
+          router.refresh(); // Refresh to update auth state
+        })
+        .catch((error) => {
+          // Still redirect even if sync fails
+          router.push(redirectTo);
+          router.refresh();
+        });
     }
   }, [state.success, router, redirectTo, syncUserData]);
 

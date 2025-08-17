@@ -1,26 +1,102 @@
 "use client";
 
+import { useCallback, useRef } from "react";
 import { useCartStore } from "@/lib/cart/cartStore";
 import { useWishlistStore } from "@/lib/wishlist/wishlistStore";
 
+function mergeCartData(localCart: any[], serverCart: any[]) {
+  const merged = [...serverCart];
+
+  localCart.forEach((localItem) => {
+    const existingIndex = merged.findIndex(
+      (serverItem) => serverItem.id === localItem.id
+    );
+
+    if (existingIndex >= 0) {
+      merged[existingIndex] = {
+        ...merged[existingIndex],
+        quantity: merged[existingIndex].quantity + localItem.quantity,
+        name: localItem.name || merged[existingIndex].name,
+        price: localItem.price || merged[existingIndex].price,
+        image: localItem.image || merged[existingIndex].image,
+      };
+    } else {
+      merged.push(localItem);
+    }
+  });
+
+  return merged;
+}
+
+function mergeWishlistData(localWishlist: any[], serverWishlist: any[]) {
+  const merged = [...serverWishlist];
+
+  localWishlist.forEach((localItem) => {
+    const exists = merged.some((serverItem) => serverItem.id === localItem.id);
+
+    if (!exists) {
+      merged.push(localItem);
+    } else {
+      const existingIndex = merged.findIndex(
+        (serverItem) => serverItem.id === localItem.id
+      );
+      merged[existingIndex] = {
+        ...merged[existingIndex],
+        name: localItem.name || merged[existingIndex].name,
+        price: localItem.price || merged[existingIndex].price,
+        image: localItem.image || merged[existingIndex].image,
+      };
+    }
+  });
+
+  return merged;
+}
+
 export function useUserDataSync() {
-  const { items: cartItems, addItem: addCartItem, clearCart } = useCartStore();
+  const {
+    items: cartItems,
+    addItem: addCartItem,
+    clearCart,
+    _setItems: setCartItems,
+  } = useCartStore();
   const {
     items: wishlistItems,
     addItem: addWishlistItem,
     clearWishlist,
+    _setItems: setWishlistItems,
   } = useWishlistStore();
 
-  const syncUserData = async () => {
+  const syncInProgress = useRef(false);
+
+  const syncUserData = useCallback(async () => {
+    if (syncInProgress.current) {
+      return;
+    }
+
+    syncInProgress.current = true;
+
     try {
-      // Add a small delay to ensure authentication cookie has propagated
       await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const userDataResponse = await fetch("/api/users/me", {
+        credentials: "include",
+      });
+
+      if (!userDataResponse.ok) {
+        throw new Error("Failed to fetch user data");
+      }
+
+      const userData = await userDataResponse.json();
+      const serverCart = userData.user?.cart || [];
+      const serverWishlist = userData.user?.wishlist || [];
+
+      const mergedCart = mergeCartData(cartItems, serverCart);
+      const mergedWishlist = mergeWishlistData(wishlistItems, serverWishlist);
 
       let cartSynced = false;
       let wishlistSynced = false;
 
-      // Sync cart to database then clear local storage
-      if (cartItems.length > 0) {
+      if (mergedCart.length > 0 || serverCart.length > 0) {
         try {
           const response = await fetch("/api/users/sync-cart", {
             method: "POST",
@@ -28,19 +104,18 @@ export function useUserDataSync() {
               "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({ cartItems }),
+            body: JSON.stringify({ cartItems: mergedCart }),
           });
 
           if (response.ok) {
             cartSynced = true;
           }
         } catch (error) {
-          // Cart sync failed - keep local data
+          // Cart sync failed - continue with local data
         }
       }
 
-      // Sync wishlist to database then clear local storage
-      if (wishlistItems.length > 0) {
+      if (mergedWishlist.length > 0 || serverWishlist.length > 0) {
         try {
           const response = await fetch("/api/users/sync-wishlist", {
             method: "POST",
@@ -48,71 +123,30 @@ export function useUserDataSync() {
               "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({ wishlistItems }),
+            body: JSON.stringify({ wishlistItems: mergedWishlist }),
           });
 
           if (response.ok) {
             wishlistSynced = true;
           }
         } catch (error) {
-          // Wishlist sync failed - keep local data
+          // Wishlist sync failed - continue with local data
         }
       }
 
-      // Fetch updated user data from server
-      const userDataResponse = await fetch("/api/users/me", {
-        credentials: "include",
-      });
+      if (cartSynced || cartItems.length === 0) {
+        setCartItems(mergedCart);
+      }
 
-      if (userDataResponse.ok) {
-        const userData = await userDataResponse.json();
-
-        // Only clear local data if sync was successful
-        if (cartSynced && cartItems.length > 0) {
-          clearCart();
-        }
-
-        if (wishlistSynced && wishlistItems.length > 0) {
-          clearWishlist();
-        }
-
-        // Load server data into local state if local is empty and server has data
-        if (cartItems.length === 0 && userData.user?.cart?.length > 0) {
-          userData.user.cart.forEach((item: any) => {
-            try {
-              if (
-                item &&
-                typeof item === "object" &&
-                "id" in item &&
-                "name" in item &&
-                "price" in item &&
-                "quantity" in item
-              ) {
-                addCartItem(item);
-              }
-            } catch (error) {
-              // Failed to add cart item - continue
-            }
-          });
-        }
-
-        if (wishlistItems.length === 0 && userData.user?.wishlist?.length > 0) {
-          userData.user.wishlist.forEach((item: any) => {
-            try {
-              if (item && typeof item === "object" && "id" in item) {
-                addWishlistItem(item);
-              }
-            } catch (error) {
-              // Failed to add wishlist item - continue
-            }
-          });
-        }
+      if (wishlistSynced || wishlistItems.length === 0) {
+        setWishlistItems(mergedWishlist);
       }
     } catch (error) {
-      // Sync failed - keep local data intact
       throw new Error("Failed to sync user data");
+    } finally {
+      syncInProgress.current = false;
     }
-  };
+  }, [cartItems, wishlistItems, setCartItems, setWishlistItems]);
 
   const clearLocalData = () => {
     clearCart();
@@ -139,9 +173,7 @@ export function useUserDataSync() {
           body: JSON.stringify({ wishlistItems: [] }),
         }),
       ]);
-    } catch (error) {
-      // Server clear failed - continue
-    }
+    } catch (error) {}
   };
 
   const clearAllData = async () => {
@@ -149,7 +181,6 @@ export function useUserDataSync() {
     await clearServerData();
   };
 
-  // Separate functions for clearing only cart or only wishlist
   const clearCartData = async () => {
     clearCart();
     try {
@@ -161,9 +192,7 @@ export function useUserDataSync() {
         credentials: "include",
         body: JSON.stringify({ cartItems: [] }),
       });
-    } catch (error) {
-      // Server clear failed - continue
-    }
+    } catch (error) {}
   };
 
   const clearWishlistData = async () => {
@@ -177,9 +206,7 @@ export function useUserDataSync() {
         credentials: "include",
         body: JSON.stringify({ wishlistItems: [] }),
       });
-    } catch (error) {
-      // Server clear failed - continue
-    }
+    } catch (error) {}
   };
 
   return {

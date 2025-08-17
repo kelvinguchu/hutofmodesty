@@ -19,8 +19,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("Logout error:", error);
-
     // Even if logout fails, clear cookies and return success
     const response = NextResponse.json(
       { message: "Logout completed" },

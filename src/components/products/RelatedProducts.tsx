@@ -196,7 +196,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
 
                   {/* Price */}
                   <p className='text-base sm:text-lg font-bold text-primary'>
-                    ${product.price.toFixed(2)}
+                    KES {product.price.toFixed(2)}
                   </p>
 
                   {/* Add to Cart Button */}

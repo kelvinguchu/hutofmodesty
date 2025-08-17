@@ -45,7 +45,6 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
-    console.error("Error generating category metadata:", error);
     return {
       title: "Shop by Category - Hut of Modesty",
       description: "Browse our premium product collections",
@@ -63,21 +62,17 @@ export default async function CategoryPage({
   const { category } = await params;
   const { sort = "newest" } = await searchParams;
 
-  // Ensure sort is a string
   const sortString = Array.isArray(sort) ? sort[0] : sort;
 
   try {
-    // Use cached payload instance
     const payload = await getPayloadInstance();
 
-    // Find the category using cached function
     const categoryDoc = await findCategoryBySlug(category);
 
     if (!categoryDoc) {
       notFound();
     }
 
-    // Collection mapping for efficient queries
     const collectionMap: { [key: string]: string } = {
       clothing: "clothing",
       footwear: "footwear",
@@ -90,7 +85,6 @@ export default async function CategoryPage({
       notFound();
     }
 
-    // Fetch subcategories and products in parallel for better performance
     const [subcategoriesData, productsData] = await Promise.all([
       payload.find({
         collection: "subcategories",

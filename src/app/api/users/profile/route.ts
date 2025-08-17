@@ -2,6 +2,92 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPayload } from "payload";
 import config from "@/payload.config";
 
+export async function GET(request: NextRequest) {
+  try {
+    const payload = await getPayload({ config });
+
+    const headers = new Headers();
+    request.headers.forEach((value, key) => {
+      headers.set(key, value);
+    });
+
+    const { user } = await payload.auth({ headers });
+
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const userProfile = await payload.findByID({
+      collection: "users",
+      id: user.id,
+      depth: 1,
+    });
+
+    return NextResponse.json({
+      firstName: userProfile.firstName || "",
+      lastName: userProfile.lastName || "",
+      email: userProfile.email || "",
+      phone: userProfile.phone || "",
+      savedShippingAddress: userProfile.savedShippingAddress || {
+        address: "",
+        city: "",
+        country: "Kenya",
+        postalCode: "",
+      },
+    });
+  } catch (error) {
+    console.error("Profile fetch error:", error);
+    return NextResponse.json(
+      { message: "Failed to fetch profile" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const payload = await getPayload({ config });
+
+    const headers = new Headers();
+    request.headers.forEach((value, key) => {
+      headers.set(key, value);
+    });
+
+    const { user } = await payload.auth({ headers });
+
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    await payload.update({
+      collection: "users",
+      id: user.id,
+      data: {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phone: body.phone,
+        savedShippingAddress: {
+          address: body.address,
+          city: body.city,
+          country: body.country || "Kenya",
+          postalCode: body.postalCode || "",
+        },
+      },
+      overrideAccess: true,
+    });
+
+    return NextResponse.json({ message: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return NextResponse.json(
+      { message: "Failed to update profile" },
+      { status: 500 }
+    );
+  }
+}
+
 // Validation functions to reduce cognitive complexity
 async function validateFormData(formData: FormData) {
   const firstName = formData.get("firstName") as string;
@@ -178,8 +264,6 @@ async function processFileUpload(
 
     return { mediaId: mediaDoc.id };
   } catch (uploadError) {
-    console.error("Profile photo upload error:", uploadError);
-
     // Provide more specific error messages
     if (uploadError instanceof Error) {
       if (uploadError.message.includes("file-type")) {

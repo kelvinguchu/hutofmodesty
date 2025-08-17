@@ -7,8 +7,7 @@ import { useCartStore } from "@/lib/cart/cartStore";
 
 export function OrderSummary() {
   const { items, itemCount, total } = useCartStore();
-  const shippingFee = 2.5; // Fixed shipping fee in USD
-  const finalTotal = total + shippingFee;
+  const finalTotal = total;
 
   return (
     <div className='bg-white rounded-xl shadow-lg border border-gray-100 p-6'>
@@ -53,10 +52,10 @@ export function OrderSummary() {
                   </h3>
                   <div className='flex justify-between items-center'>
                     <p className='text-sm text-gray-600'>
-                      ${item.price.toFixed(2)} × {item.quantity}
+                      KES {item.price.toFixed(2)} × {item.quantity}
                     </p>
                     <p className='text-sm font-bold text-gray-900'>
-                      ${(item.price * item.quantity).toFixed(2)}
+                      KES {(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -71,18 +70,17 @@ export function OrderSummary() {
                 Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
               </span>
               <span className='text-gray-900 font-medium'>
-                ${total.toFixed(2)}
+                KES {total.toFixed(2)}
               </span>
             </div>
-            <div className='flex justify-between text-sm'>
-              <span className='text-gray-600'>Shipping</span>
-              <span className='text-gray-900 font-medium'>
-                ${shippingFee.toFixed(2)}
-              </span>
+            <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 my-3'>
+              <p className='text-blue-800 text-sm font-medium text-center'>
+                Shipping cost will be communicated according to destination
+              </p>
             </div>
             <div className='flex justify-between text-lg font-bold pt-3 border-t border-gray-200'>
               <span className='text-gray-900'>Total</span>
-              <span className='text-gray-900'>${finalTotal.toFixed(2)}</span>
+              <span className='text-gray-900'>KES {finalTotal.toFixed(2)}</span>
             </div>
           </div>
 

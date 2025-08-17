@@ -302,7 +302,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         </h1>
         <div className='flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-3'>
           <p className='text-xl sm:text-2xl font-bold text-primary'>
-            ${typeof price === "number" ? price.toFixed(2) : "0.00"}
+            KES {typeof price === "number" ? price.toFixed(2) : "0.00"}
           </p>
           <span className='inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 w-fit'>
             In Stock

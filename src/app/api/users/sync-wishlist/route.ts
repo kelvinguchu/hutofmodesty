@@ -6,13 +6,11 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config });
 
-    // Convert Next.js headers to the format Payload expects
     const headers = new Headers();
     request.headers.forEach((value, key) => {
       headers.set(key, value);
     });
 
-    // Get the authenticated user using Payload's auth method
     const authResult = await payload.auth({ headers });
 
     if (!authResult.user) {
@@ -25,7 +23,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { wishlistItems } = body;
 
-    // Validate wishlistItems is an array
     if (!Array.isArray(wishlistItems)) {
       return NextResponse.json(
         { message: "Invalid wishlist data format" },
@@ -40,7 +37,7 @@ export async function POST(request: NextRequest) {
       data: {
         wishlist: wishlistItems,
       },
-      overrideAccess: false, // Enforce access control
+      overrideAccess: true,
     });
 
     return NextResponse.json({

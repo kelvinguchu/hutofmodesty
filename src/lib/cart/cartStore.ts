@@ -15,11 +15,21 @@ interface CartState {
   items: CartItem[];
   itemCount: number;
   total: number;
-  addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addItem: (item: CartItem, options?: { skipSync?: boolean }) => void;
+  removeItem: (id: string, options?: { skipSync?: boolean }) => void;
+  updateQuantity: (
+    id: string,
+    quantity: number,
+    options?: { skipSync?: boolean }
+  ) => void;
   clearCart: () => void;
   isInCart: (id: string) => boolean;
+  // Sync-related state
+  syncInProgress: boolean;
+  lastSyncError: string | null;
+  // Internal methods for sync integration
+  _setSyncState: (inProgress: boolean, error?: string | null) => void;
+  _setItems: (items: CartItem[]) => void;
 }
 
 // Helper function to calculate totals
@@ -39,8 +49,10 @@ export const useCartStore = create<CartState>()(
       items: [],
       itemCount: 0,
       total: 0,
+      syncInProgress: false,
+      lastSyncError: null,
 
-      addItem: (item: CartItem) => {
+      addItem: (item: CartItem, options = {}) => {
         set((state) => {
           // Check if the item already exists in the cart
           const existingItemIndex = state.items.findIndex(
@@ -70,7 +82,7 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      removeItem: (id: string) => {
+      removeItem: (id: string, options = {}) => {
         set((state) => {
           const updatedItems = state.items.filter((item) => item.id !== id);
           const { itemCount, total } = calculateTotals(updatedItems);
@@ -82,9 +94,9 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      updateQuantity: (id: string, quantity: number) => {
+      updateQuantity: (id: string, quantity: number, options = {}) => {
         if (quantity <= 0) {
-          get().removeItem(id);
+          get().removeItem(id, options);
           return;
         }
 
@@ -107,6 +119,16 @@ export const useCartStore = create<CartState>()(
 
       isInCart: (id: string) => {
         return get().items.some((item) => item.id === id);
+      },
+
+      // Internal methods for sync integration
+      _setSyncState: (inProgress: boolean, error: string | null = null) => {
+        set({ syncInProgress: inProgress, lastSyncError: error });
+      },
+
+      _setItems: (items: CartItem[]) => {
+        const { itemCount, total } = calculateTotals(items);
+        set({ items, itemCount, total });
       },
     }),
     {

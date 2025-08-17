@@ -4,6 +4,7 @@ import { payloadCloudPlugin } from "@payloadcms/payload-cloud";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import path from "path";
 import { buildConfig } from "payload";
+import { resendAdapter } from "@payloadcms/email-resend";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
 
@@ -43,12 +44,13 @@ export default buildConfig({
       },
     },
   },
-  // Add CSRF protection and server URL for proper cookie handling
+  email: resendAdapter({
+    defaultFromAddress: "info@hutofmodesty.com",
+    defaultFromName: "Hut of Modesty",
+    apiKey: process.env.RESEND_API_KEY || "",
+  }),
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
-  csrf: [
-    // Allow requests from the same origin
-    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
-  ],
+  csrf: [process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000"],
   collections: [
     Users,
     Media,
@@ -73,7 +75,6 @@ export default buildConfig({
     payloadCloudPlugin(),
     uploadthingStorage({
       collections: {
-        // key must match the slug in ./collections/Media
         media: true,
       },
       options: {

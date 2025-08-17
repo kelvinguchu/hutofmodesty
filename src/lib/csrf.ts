@@ -75,7 +75,6 @@ export function validateCSRFToken(token: string): boolean {
 
     return now - tokenTime < oneHour;
   } catch (error) {
-    console.error("CSRF token validation error:", error);
     return false;
   }
 }

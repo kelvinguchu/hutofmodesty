@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error in /api/users/me:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
